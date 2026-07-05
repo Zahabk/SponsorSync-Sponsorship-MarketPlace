@@ -1,5 +1,17 @@
 import mongoose, { model, Schema } from "mongoose";
 
+const tierSchema = new Schema(
+  {
+    name: {
+      type: String,
+      enum: ["Gold", "Silver", "Bronze"],
+    },
+    price: Number,
+    benefits: [String],
+  },
+  { _id: false }
+);
+
 const eventSchema = new Schema(
   {
     title: {
@@ -26,7 +38,6 @@ const eventSchema = new Schema(
       type: Date,
       required: true,
     },
-
     location: {
       type: String,
       required: true,
@@ -40,16 +51,7 @@ const eventSchema = new Schema(
       default: "",
     },
     tiers: {
-      type: [
-        {
-          name: {
-            type: String,
-            enum: ["Gold", "Silver", "Bronze"],
-          },
-          price: Number,
-          benefits: [String],
-        },
-      ],
+      type: [tierSchema],
       default: () => [
         {
           name: "Gold",

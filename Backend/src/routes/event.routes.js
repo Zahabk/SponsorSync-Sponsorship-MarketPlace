@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { authorizeRole, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   createEvent,
   deleteEvent,
@@ -13,19 +13,35 @@ import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
-router.route("/").post(verifyJWT, upload.single("banner"), createEvent);
+//public
 router.route("/").get(getAllEvents);
-router.route("/:id").get(verifyJWT, getEvent);
-router.route("/:id").patch(verifyJWT, updateEvent);
-router.route("/:id").delete(verifyJWT, deleteEvent);
-router.route("/banner/:id").patch(verifyJWT, upload.single("banner"), updateBanner);
-router.route("/mine").get(verifyJWT, getOrganizerEvents);
+
+//organizer only
+router
+.route("/")
+.post(
+  verifyJWT,
+  authorizeRole("organizer"),
+  upload.single("banner"),
+  createEvent,
+);
+router
+.route("/my-events")
+.get(verifyJWT, authorizeRole("organizer"), getOrganizerEvents);
+
+
+router.route("/:id").get(verifyJWT, getEvent); //public
+router.route("/:id").patch(verifyJWT, authorizeRole("organizer"), updateEvent);
+router.route("/:id").delete(verifyJWT, authorizeRole("organizer"), deleteEvent);
+router
+  .route("/banner/:id")
+  .patch(
+    verifyJWT,
+    authorizeRole("organizer"),
+    upload.single("banner"),
+    updateBanner,
+  );
+
 
 export default router;
 
-// POST   /api/events
-// GET    /api/events
-// GET    /api/events/:id
-// PUT    /api/events/:id
-// DELETE /api/events/:id
-// GET    /api/events/mine

@@ -37,19 +37,27 @@ const createEvent = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Proposal Deadline must be before event date");
   }
 
-  const bannerLocalPath = req.file?.banner?.path;
-
-  if (!bannerLocalPath) {
-    throw new ApiError(400, "Banner file is missing");
+  let parsedTiers = [];
+  if (tiers) {
+    try {
+      parsedTiers = typeof tiers === "string" ? JSON.parse(tiers) : tiers;
+    } catch (err) {
+      throw new ApiError(400, "Invalid tiers format, must be valid JSON");
+    }
   }
 
-  const banner = await uploadOnCloudinary(bannerLocalPath);
+  const bannerLocalPath = req.file?.path;
+  let bannerUrl = "";
 
-  if (!banner.url) {
-    throw new ApiError(
-      500,
-      "Something went wrong while uploading banner on cloudinary",
-    );
+  if (bannerLocalPath) {
+    const banner = await uploadOnCloudinary(bannerLocalPath);
+    if (!banner?.url) {
+      throw new ApiError(
+        500,
+        "Something went wrong while uploading banner on cloudinary",
+      );
+    }
+    bannerUrl = banner.url;
   }
 
   const createdEvent = await Event.create({
@@ -59,8 +67,8 @@ const createEvent = asyncHandler(async (req, res) => {
     eventDate,
     location,
     audienceSize,
-    banner: banner.url,
-    tiers,
+    banner: bannerUrl,
+    tiers: parsedTiers,
     proposalDeadline,
     status,
     organizer: req.user?._id,
@@ -104,6 +112,7 @@ const getAllEvents = asyncHandler(async (req, res) => {
 
 //update event
 const updateEvent = asyncHandler(async (req, res) => {
+  const { id } = req.params;
   const {
     title,
     description,
@@ -116,7 +125,22 @@ const updateEvent = asyncHandler(async (req, res) => {
     status,
   } = req.body;
 
-  const { id } = req.params;
+  let parsedTiers;
+  if (tiers) {
+    try {
+      parsedTiers = typeof tiers === "string" ? JSON.parse(tiers) : tiers;
+    } catch {
+      throw new ApiError(400, "Invalid tiers format, must be valid JSON");
+    }
+  }
+
+  const event = await Event.findById(id);
+  if (!event) throw new ApiError(404, "Event not found");
+
+  if (!event.organizer.equals(req.user?._id)) {
+    throw new ApiError(403, "Not authorized to update this event");
+  }
+
   const updatedEvent = await Event.findByIdAndUpdate(
     id,
     {
@@ -127,7 +151,7 @@ const updateEvent = asyncHandler(async (req, res) => {
         eventDate,
         location,
         audienceSize,
-        tiers,
+        tiers: parsedTiers,
         proposalDeadline,
         status,
       },
@@ -137,22 +161,24 @@ const updateEvent = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Event updated Successfully", updatedEvent));
+    .json(new ApiResponse(200, "Event updated successfully", updatedEvent));
 });
 
 //delete event
 const deleteEvent = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (event.organizer.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You are not authorized to delete this event");
-  }
-
-  const event = await Event.findByIdAndDelete(id);
+  const event = await Event.findById(id);
 
   if (!event) {
     throw new ApiError(404, "Event not found");
   }
+
+  if (!event.organizer.equals(req.user._id)) {
+    throw new ApiError(403, "You are not authorized to delete this event");
+  }
+
+  await event.deleteOne();
 
   return res
     .status(200)
@@ -161,9 +187,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 
 //get particular organizer's event
 const getOrganizerEvents = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const events = await Event.find({ organizer: id });
+  const events = await Event.find({ organizer: req.user?._id });
 
   if (!events) {
     throw new ApiError(404, "Events not found");
@@ -177,25 +201,30 @@ const getOrganizerEvents = asyncHandler(async (req, res) => {
 const updateBanner = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const event = await Event.findById(id);
-
-  const bannerLocalPath = req.file?.banner?.path;
-
-  if (!bannerLocalPath) {
-    throw new ApiError(400, "Banner file is missing");
-  }
-
   const oldBannerUrl = event?.banner;
 
-  const banner = await uploadOnCloudinary(bannerLocalPath);
+  if (!event.organizer.equals(req.user?._id)) {
+    throw new ApiError(403, "Not authorized to update this event");
+  }
 
-  if (!banner.url) {
-    throw new ApiError(400, "Error while uploading banner on cloudinary");
+  const bannerLocalPath = req.file?.path;
+  let bannerUrl = "";
+
+  if (bannerLocalPath) {
+    const banner = await uploadOnCloudinary(bannerLocalPath);
+    if (!banner?.url) {
+      throw new ApiError(
+        500,
+        "Something went wrong while uploading banner on cloudinary",
+      );
+    }
+    bannerUrl = banner.url;
   }
 
   const updatedEvent = await event.updateOne(
     {
       $set: {
-        banner: banner.url,
+        banner: bannerUrl,
       },
     },
     { new: true },
@@ -208,7 +237,7 @@ const updateBanner = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Banner updated Successfully", updatedEvent));
+    .json(new ApiResponse(200, "Banner updated Successfully", {}));
 });
 
 export {

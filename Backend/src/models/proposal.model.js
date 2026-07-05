@@ -24,6 +24,7 @@ const proposalSchema = new Schema(
     },
     message: {
       type: String,
+      default:""
     },
     status: {
       type: String,
@@ -42,6 +43,7 @@ const proposalSchema = new Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    
   },
   { timestamps: true },
 );

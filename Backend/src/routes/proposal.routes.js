@@ -1,25 +1,45 @@
 import { Router } from "express";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { authorizeRole, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  getEventProposals,
+  getMyProposal,
   orgDecisionOnProposal,
-  orgGetProposal,
   orgSendsCounter,
-  sponsorGetProposal,
-  sponsorRespondOnCounter,
+  orgUpdateCounter,
+  sponsorRespondToCounter,
   submitProposal,
+  updateProposal,
 } from "../controllers/proposal.controllers.js";
 
 const router = Router();
 
-router.route("/").post(verifyJWT, submitProposal);
-router.route("/event/:eventId").get(verifyJWT, orgGetProposal);
-router.route("/mine").get(verifyJWT, sponsorGetProposal);
-router.route("/:id/decision").patch(verifyJWT, orgDecisionOnProposal);
-router.route("/:id/counter").patch(verifyJWT, orgSendsCounter);
-router.route("/:id/respond").patch(verifyJWT, sponsorRespondOnCounter);
+
+//sponsor only
+router
+  .route("/:eventId")
+  .post(verifyJWT, authorizeRole("sponsor"), submitProposal);
+router.route("/mine").get(verifyJWT, authorizeRole("sponsor"), getMyProposal);
+router.route("/:id").patch(verifyJWT, authorizeRole("sponsor"), updateProposal);
+router
+  .route("/respond/:id/:action")
+  .patch(verifyJWT, authorizeRole("sponsor"), sponsorRespondToCounter);
+
+//organizer only
+
+router
+  .route("/:eventId")
+  .get(verifyJWT, authorizeRole("organizer"), getEventProposals);
+router
+  .route("/counter/:id")
+  .post(verifyJWT, authorizeRole("organizer"), orgSendsCounter);
+router
+  .route("/update-counter/:id")
+  .patch(verifyJWT, authorizeRole("organizer"), orgUpdateCounter);
+router
+  .route("/:id/decision")
+  .patch(verifyJWT, authorizeRole("organizer"), orgDecisionOnProposal);
 
 export default router;
-
 
 // Proposals
 // POST  /api/proposals ----> Submit proposal(event,tier,proposedBudget,message)

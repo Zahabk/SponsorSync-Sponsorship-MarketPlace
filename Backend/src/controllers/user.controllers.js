@@ -239,6 +239,13 @@ const deleteUserAccount = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "User deleted Successfully", {}));
 });
 
+//get all users
+const getAllUsers = asyncHandler(async (req,res) => {
+  const users = await User.find({})
+  return res.status(200)
+  .json(new ApiResponse(200,"All users fetched successfully",users))
+})
+
 export {
   registerUser,
   loginUser,
@@ -248,4 +255,5 @@ export {
   changeAvatar,
   getCurrentUser,
   deleteUserAccount,
+  getAllUsers
 };

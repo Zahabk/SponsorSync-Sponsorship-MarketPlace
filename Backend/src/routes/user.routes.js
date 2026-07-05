@@ -4,6 +4,7 @@ import {
   changeAvatar,
   changePassword,
   deleteUserAccount,
+  getAllUsers,
   getCurrentUser,
   loginUser,
   logoutUser,
@@ -18,6 +19,8 @@ router.route("/register").post(upload.single("avatar"), registerUser);
 router.route("/login").post(loginUser);
 
 //secured routes
+
+router.route("/all").get( getAllUsers);
 
 router.route("/logout").get(verifyJWT, logoutUser);
 router.route("/").get(verifyJWT, getCurrentUser);
