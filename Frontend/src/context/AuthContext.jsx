@@ -8,28 +8,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
- 
-  
   useEffect(() => {
-    const checkAuth= async()=>{
-        try {
-            const data = await AuthService.getCurrentUser()
-            setUser(data.data)
-            setIsAuthenticated(true)
-        } catch (error) {
-            setUser(null)
-            setIsAuthenticated(false)
-        }finally{
-            setLoading(false)
+    const checkAuth = async () => {
+      try {
+        const responseData = await AuthService.getCurrentUser();
+        setUser(responseData.data);
+        setIsAuthenticated(true);
+      } catch (error) {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
-        }
-    }
-    checkAuth()
-  });
+  const login = async (credentials) => {
+    const response = await AuthService.login(credentials);
+    setUser(response.data.userDetails);
+    console.log("Data: ", response);
+    console.log("user: ", response.data.userDetails);
 
-   const login = async (credentials) => {
-    const data = await AuthService.login(credentials);
-    setUser(data.user);
     setIsAuthenticated(true);
   };
 
@@ -39,13 +39,15 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
-  return(
-    <AuthContext.Provider value={{isAuthenticated,user,setUser,loading,login,logout}}>
-        {children}
+  return (
+    <AuthContext.Provider
+      value={{ isAuthenticated, user, setUser, loading, login, logout }}
+    >
+      {children}
     </AuthContext.Provider>
-  )
+  );
 };
 
-export const useAuth = ()=>{
-    return useContext(AuthContext)
-}
+export const useAuth = () => {
+  return useContext(AuthContext);
+};

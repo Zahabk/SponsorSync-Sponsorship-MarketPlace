@@ -6,22 +6,52 @@ import Signup from "../pages/Signup";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import Events from "../pages/Events";
 import CreateEvent from "../pages/CreateEvent";
+import LoginRegisterLayout from "../layouts/LoginRegisterLayout";
+import Profile from "../pages/Profile";
+import AuthorizedRoute from "./AuthorizedRoute";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
+        {/* For login/register layout  */}
+        <Route path="/" element={<LoginRegisterLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/events" element={
-            <ProtectedRoute allowedRole={"organizer"}>
-              <Events/>
-            </ProtectedRoute>
-          }/>
         </Route>
-        <Route path="create-event" element={<CreateEvent/>} />
+
+        {/* Main layout  */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* For organizer only */}
+          <Route
+            path="/events"
+            element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <Events />
+              </AuthorizedRoute>
+            }
+          />
+          <Route
+            path="create-event"
+            element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <CreateEvent />
+              </AuthorizedRoute>
+            }
+          />
+
+          {/* For sponsor only */}
+        </Route>
       </Routes>
     </BrowserRouter>
   );

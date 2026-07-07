@@ -9,33 +9,33 @@ const AuthService = {
   },
   login: async (credentials) => {
     const res = await Api.post("users/login", credentials);
-    return res;
+    return res.data;
   },
   getCurrentUser: async () => {
     const res = await Api.get("users/current-user");
-    return res;
+    return res.data;
   },
   logout: async () => {
     const res = await Api.get("users/logout");
-    return res;
+    return res.data;
   },
   updateUserAccount: async (updatedDetails) => {
     const res = await Api.patch("users/account", updatedDetails);
-    return res;
+    return res.data;
   },
   changeCurrentPassword: async (newPassword) => {
     const res = await Api.patch("users/password", newPassword);
-    return res;
+    return res.data;
   },
   updateAvatar: async (newAvatar) => {
     const res = await Api.patch("users/avatar", newAvatar, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res;
+    return res.data;
   },
   deleteAccount: async () => {
     const res = await Api.delete("users/");
-    return res;
+    return res.data;
   },
 };
 
