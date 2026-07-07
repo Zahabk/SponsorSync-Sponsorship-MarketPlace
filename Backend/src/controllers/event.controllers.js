@@ -86,9 +86,9 @@ const createEvent = asyncHandler(async (req, res) => {
 
 //get event details
 const getEvent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { eventId } = req.params;
 
-  const event = await Event.findById(id);
+  const event = await Event.findById(eventId);
   if (!event) {
     throw new ApiError(404, "Event not found");
   }
@@ -112,7 +112,7 @@ const getAllEvents = asyncHandler(async (req, res) => {
 
 //update event
 const updateEvent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { eventId } = req.params;
   const {
     title,
     description,
@@ -134,7 +134,7 @@ const updateEvent = asyncHandler(async (req, res) => {
     }
   }
 
-  const event = await Event.findById(id);
+  const event = await Event.findById(eventId);
   if (!event) throw new ApiError(404, "Event not found");
 
   if (!event.organizer.equals(req.user?._id)) {
@@ -142,7 +142,7 @@ const updateEvent = asyncHandler(async (req, res) => {
   }
 
   const updatedEvent = await Event.findByIdAndUpdate(
-    id,
+    eventId,
     {
       $set: {
         title,
@@ -166,9 +166,9 @@ const updateEvent = asyncHandler(async (req, res) => {
 
 //delete event
 const deleteEvent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { eventId } = req.params;
 
-  const event = await Event.findById(id);
+  const event = await Event.findById(eventId);
 
   if (!event) {
     throw new ApiError(404, "Event not found");
@@ -199,8 +199,8 @@ const getOrganizerEvents = asyncHandler(async (req, res) => {
 
 //update banner image
 const updateBanner = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const event = await Event.findById(id);
+  const { eventId } = req.params;
+  const event = await Event.findById(eventId);
   const oldBannerUrl = event?.banner;
 
   if (!event.organizer.equals(req.user?._id)) {

@@ -9,7 +9,11 @@ const userSchema = new Schema(
       unique: true,
       required: true,
     },
-    fullName: {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
       type: String,
       required: true,
     },
@@ -31,7 +35,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    avatar: {
+    profileImage: {
       type: String,
       default: "",
     },

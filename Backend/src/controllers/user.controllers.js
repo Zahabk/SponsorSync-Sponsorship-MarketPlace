@@ -26,10 +26,11 @@ const generateToken = async (userId) => {
 
 //register user
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, fullName, email, password, role, company } = req.body;
+  const { username, firstName, lastName, email, password, role, company } =
+    req.body;
 
   if (
-    [username, email, fullName, password, role, company].some(
+    [username, email, firstName, lastName, password, role, company].some(
       (field) => field?.trim() === "",
     )
   ) {
@@ -44,25 +45,29 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists ");
   }
 
-  const avatarLocalPath = req.file?.path;
-  let avatarUrl='';
+  const profileImageLocalPath = req.file?.path;
+  let profileImageUrl = "";
 
-  if (avatarLocalPath) {
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    if (!avatar?.url) {
-      throw new ApiError(400, "Error while uploading Avatar on cloudinary");
+  if (profileImageLocalPath) {
+    const profileImage = await uploadOnCloudinary(profileImageLocalPath);
+    if (!profileImage?.url) {
+      throw new ApiError(
+        400,
+        "Error while uploading profile image on cloudinary",
+      );
     }
-    avatarUrl=avatar.url
+    profileImageUrl = profileImage.url;
   }
 
   const user = await User.create({
     username: username.toLowerCase(),
-    fullName,
+    firstName,
+    lastName,
     email,
     password,
     role,
     company,
-    avatar: avatarUrl,
+    profileImage: profileImageUrl,
   });
 
   const createdUser = await User.findById(user._id).select("-password");
@@ -162,14 +167,15 @@ const changePassword = asyncHandler(async (req, res) => {
 
 //update user account details
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { username, fullName, email, role, company } = req.body;
+  const { username, firstName, lastName, email, role, company } = req.body;
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
         username,
-        fullName,
+        firstName,
+        lastName,
         email,
         role,
         company,
@@ -185,29 +191,32 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
-//change user avatar
-const changeAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+//change user profileImage
+const changeProfileImage = asyncHandler(async (req, res) => {
+  const profileImageLocalPath = req.file?.path;
 
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar file is required");
+  if (!profileImageLocalPath) {
+    throw new ApiError(400, "Profile Image file is required");
   }
 
-  //Find user and extract avatar url
+  //Find user and extract profileImage url
   const user = await User.findById(req.user?._id);
-  const oldAvatarUrl = user?.avatar;
+  const oldProfileImagerUrl = user?.profileImage;
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  const profileImage = await uploadOnCloudinary(profileImageLocalPath);
 
-  if (!avatar.url) {
-    throw new ApiError(400, "Error while uploading Avatar on cloudinary");
+  if (!profileImage.url) {
+    throw new ApiError(
+      400,
+      "Error while uploading profile image on cloudinary",
+    );
   }
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
-        avatar: avatar.url,
+        profileImage: profileImage.url,
       },
     },
     {
@@ -215,15 +224,17 @@ const changeAvatar = asyncHandler(async (req, res) => {
     },
   ).select("-password");
 
-  //if new avatar updated successfully, delete old avatar from cloudinary
-  if (oldAvatarUrl) {
-    const publicId = oldAvatarUrl.split("/").pop().split(".")[0];
+  //if new profile image updated successfully, delete old profile image from cloudinary
+  if (oldProfileImagerUrl) {
+    const publicId = oldProfileImagerUrl.split("/").pop().split(".")[0];
     await deleteFromCloudinary(publicId);
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Avatar changed successfully", updatedUser));
+    .json(
+      new ApiResponse(200, "Profile Image changed successfully", updatedUser),
+    );
 });
 
 //delete user account
@@ -240,11 +251,12 @@ const deleteUserAccount = asyncHandler(async (req, res) => {
 });
 
 //get all users
-const getAllUsers = asyncHandler(async (req,res) => {
-  const users = await User.find({})
-  return res.status(200)
-  .json(new ApiResponse(200,"All users fetched successfully",users))
-})
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({});
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "All users fetched successfully", users));
+});
 
 export {
   registerUser,
@@ -252,8 +264,8 @@ export {
   logoutUser,
   changePassword,
   updateAccountDetails,
-  changeAvatar,
+  changeProfileImage,
   getCurrentUser,
   deleteUserAccount,
-  getAllUsers
+  getAllUsers,
 };

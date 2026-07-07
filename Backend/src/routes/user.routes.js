@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
-  changeAvatar,
   changePassword,
+  changeProfileImage,
   deleteUserAccount,
   getAllUsers,
   getCurrentUser,
@@ -15,18 +15,19 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(upload.single("avatar"), registerUser);
+router.route("/register").post(upload.single("profileImage"), registerUser);
 router.route("/login").post(loginUser);
+router.route("/all").get(getAllUsers);
 
 //secured routes
 
-router.route("/all").get( getAllUsers);
-
 router.route("/logout").get(verifyJWT, logoutUser);
-router.route("/").get(verifyJWT, getCurrentUser);
+router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/account").patch(verifyJWT, updateAccountDetails);
 router.route("/password").patch(verifyJWT, changePassword);
-router.route("/avatar").patch(verifyJWT, upload.single("avatar"), changeAvatar);
+router
+  .route("/profileImage")
+  .patch(verifyJWT, upload.single("profileImage"), changeProfileImage);
 router.route("/").delete(verifyJWT, deleteUserAccount);
 
 export default router;

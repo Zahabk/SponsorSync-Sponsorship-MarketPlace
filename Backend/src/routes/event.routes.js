@@ -25,16 +25,17 @@ router
   upload.single("banner"),
   createEvent,
 );
+
 router
 .route("/my-events")
 .get(verifyJWT, authorizeRole("organizer"), getOrganizerEvents);
 
 
-router.route("/:id").get(verifyJWT, getEvent); //public
-router.route("/:id").patch(verifyJWT, authorizeRole("organizer"), updateEvent);
-router.route("/:id").delete(verifyJWT, authorizeRole("organizer"), deleteEvent);
+router.route("/:eventId").get(verifyJWT, getEvent); //public
+router.route("/:eventId").patch(verifyJWT, authorizeRole("organizer"), updateEvent);
+router.route("/:eventId").delete(verifyJWT, authorizeRole("organizer"), deleteEvent);
 router
-  .route("/banner/:id")
+  .route("/banner/:eventId")
   .patch(
     verifyJWT,
     authorizeRole("organizer"),

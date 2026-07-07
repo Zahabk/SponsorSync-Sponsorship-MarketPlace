@@ -19,9 +19,9 @@ router
   .route("/:eventId")
   .post(verifyJWT, authorizeRole("sponsor"), submitProposal);
 router.route("/mine").get(verifyJWT, authorizeRole("sponsor"), getMyProposal);
-router.route("/:id").patch(verifyJWT, authorizeRole("sponsor"), updateProposal);
+router.route("/:proposalId").patch(verifyJWT, authorizeRole("sponsor"), updateProposal);
 router
-  .route("/respond/:id/:action")
+  .route("/respond/:proposalId/:action")
   .patch(verifyJWT, authorizeRole("sponsor"), sponsorRespondToCounter);
 
 //organizer only
@@ -30,13 +30,13 @@ router
   .route("/:eventId")
   .get(verifyJWT, authorizeRole("organizer"), getEventProposals);
 router
-  .route("/counter/:id")
+  .route("/counter/:proposalId")
   .post(verifyJWT, authorizeRole("organizer"), orgSendsCounter);
 router
-  .route("/update-counter/:id")
+  .route("/update-counter/:proposalId")
   .patch(verifyJWT, authorizeRole("organizer"), orgUpdateCounter);
 router
-  .route("/:id/decision")
+  .route("/decision/:proposalId/:action")
   .patch(verifyJWT, authorizeRole("organizer"), orgDecisionOnProposal);
 
 export default router;

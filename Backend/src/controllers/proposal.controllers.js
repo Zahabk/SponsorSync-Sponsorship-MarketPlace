@@ -58,10 +58,10 @@ const getMyProposal = asyncHandler(async (req, res) => {
 });
 
 const updateProposal = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { proposalId } = req.params;
   const { proposedBudget, tier, message } = req.body;
 
-  const proposal = await Proposal.findById(id);
+  const proposal = await Proposal.findById(proposalId);
 
   if (!proposal) {
     throw new ApiError(404, "No proposals found");
@@ -75,7 +75,7 @@ const updateProposal = asyncHandler(async (req, res) => {
   }
 
   const updatedProposal = await Proposal.findByIdAndUpdate(
-    id,
+    proposalId,
     {
       $set: {
         tier,
@@ -94,10 +94,10 @@ const updateProposal = asyncHandler(async (req, res) => {
 });
 
 const sponsorRespondToCounter = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { proposalId } = req.params;
   const { action } = req.params;
 
-  const proposal = await Proposal.findById(id);
+  const proposal = await Proposal.findById(proposalId);
   if (!proposal) {
     return res.status(404).json(new ApiResponse(404, "Proposal not found"));
   }
@@ -152,9 +152,9 @@ const getEventProposals = asyncHandler(async (req, res) => {
 });
 
 const orgDecisionOnProposal = asyncHandler(async (req, res) => {
-  const { action } = req.body;
+  const { action } = req.params;
 
-  const proposal = await Proposal.findById(req.params.id);
+  const proposal = await Proposal.findById(req.params.proposalId);
 
   if (!proposal) {
     throw new ApiError(400, "No proposal found");
@@ -182,10 +182,10 @@ const orgDecisionOnProposal = asyncHandler(async (req, res) => {
 });
 
 const orgSendsCounter = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { proposalId } = req.params;
   const { counterOffer, counterNote } = req.body;
 
-  const proposal = await Proposal.findById(id).populate("event", "organizer");
+  const proposal = await Proposal.findById(proposalId).populate("event", "organizer");
 
   if (!proposal) {
     throw new ApiError(404, "Proposal not found");
@@ -220,10 +220,10 @@ const orgSendsCounter = asyncHandler(async (req, res) => {
 });
 
 const orgUpdateCounter = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { proposalId } = req.params;
   const { counterOffer, counterNote } = req.body;
 
-  const proposal = await Proposal.findById(id).populate("event", "organizer");
+  const proposal = await Proposal.findById(proposalId).populate("event", "organizer");
 
   if (!proposal) {
     throw new ApiError(404, "Proposal not found");
