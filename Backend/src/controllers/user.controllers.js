@@ -167,7 +167,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
 //update user account details
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { username, firstName, lastName, email, role, company } = req.body;
+  const { username, firstName, lastName, email, company } = req.body;
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user?._id,
@@ -177,12 +177,15 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         firstName,
         lastName,
         email,
-        role,
         company,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   ).select("-password");
+
+  if(!updatedUser){
+    throw new ApiError(500,"Updation Failed!!!")
+  }
 
   return res
     .status(200)
@@ -220,7 +223,7 @@ const changeProfileImage = asyncHandler(async (req, res) => {
       },
     },
     {
-      new: true,
+      returnDocument: "after",
     },
   ).select("-password");
 

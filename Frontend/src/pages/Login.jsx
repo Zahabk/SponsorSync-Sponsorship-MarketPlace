@@ -2,16 +2,17 @@ import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {toast} from 'react-toastify'
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     email: "",
     password: "",
-  });
-  const {login,user} = useAuth()
+  };
+  const [formData, setFormData] = useState(initialFormState);
+  const { login, user } = useAuth();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -19,20 +20,28 @@ const Login = () => {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      
       await login(formData);
       toast.success("Logged in successfully!");
-      
+      setFormData(initialFormState);
       navigate("/");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      if (err.response?.status === 400) {
+        toast.error("All fields are required");
+      }
+      if (err.response?.status === 401) {
+        setFormData({...formData,password:""});
+        toast.error("Invalid user credentials");
+      }
+      if (err.response?.status === 404) {
+        setFormData(initialFormState);
+        toast.error("User not registered!!");
+      }
     } finally {
       setLoading(false);
     }
-
   };
 
   return (

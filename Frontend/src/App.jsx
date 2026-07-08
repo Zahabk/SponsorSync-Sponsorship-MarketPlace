@@ -6,7 +6,7 @@ import { ToastContainer } from "react-toastify";
 const App = () => {
   return (
     <AuthProvider>
-      <ToastContainer position="top-right" toastOptions={{ duration: 3000 }} />
+      <ToastContainer position="top-right" autoClose={2000} closeOnClick={true} theme="colored" />
       <AppRoutes />
     </AuthProvider>
   );

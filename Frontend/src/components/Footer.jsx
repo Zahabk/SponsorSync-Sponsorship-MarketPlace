@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const LogoIcon = () => (
   <svg
@@ -14,16 +15,25 @@ const LogoIcon = () => (
 );
 
 const Footer = () => {
+  const { user } = useAuth();
+
   return (
     <footer className="w-full border-t border-base-300 bg-base-100 py-4">
       <div className=" px-8 flex flex-col sm:flex-row justify-between items-center gap-3">
         {/* ── Logo ── */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex items-center justify-center rounded-[9px] shrink-0 bg-primary w-6 h-6">
+          <span
+            className={`flex items-center justify-center rounded-[9px] shrink-0 w-6 h-6 ${user?.role === "organizer" ? "bg-primary" : "bg-secondary/80" || "bg-primary"}`}
+          >
             <LogoIcon />
           </span>
           <span className="text-base-content font-mono text-sm font-medium">
-            Sponsor<span className="text-primary">Sync</span>
+            Sponsor
+            <span
+              className={`${user?.role === "organizer" ? "text-primary" : "text-secondary/80" || "text-primary"}`}
+            >
+              Sync
+            </span>
           </span>
         </Link>
 

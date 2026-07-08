@@ -23,12 +23,12 @@ const AuthService = {
     const res = await Api.patch("users/account", updatedDetails);
     return res.data;
   },
-  changeCurrentPassword: async (newPassword) => {
-    const res = await Api.patch("users/password", newPassword);
+  changeCurrentPassword: async (password) => {
+    const res = await Api.patch("users/password", password);
     return res.data;
   },
-  updateAvatar: async (newAvatar) => {
-    const res = await Api.patch("users/avatar", newAvatar, {
+  updateProfileImage: async (newProfileImage) => {
+    const res = await Api.patch("users/profileImage", newProfileImage, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;

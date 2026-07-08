@@ -156,7 +156,7 @@ const updateEvent = asyncHandler(async (req, res) => {
         status,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   return res
@@ -227,7 +227,7 @@ const updateBanner = asyncHandler(async (req, res) => {
         banner: bannerUrl,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   if (oldBannerUrl) {

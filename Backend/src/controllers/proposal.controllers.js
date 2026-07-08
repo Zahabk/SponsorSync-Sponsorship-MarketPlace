@@ -83,7 +83,7 @@ const updateProposal = asyncHandler(async (req, res) => {
         message,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   return res
@@ -117,7 +117,10 @@ const sponsorRespondToCounter = asyncHandler(async (req, res) => {
     proposal.status = "rejected";
   }
 
-  await proposal.save({ new: true }, { validateBeforeSave: true });
+  await proposal.save(
+    { returnDocument: "after" },
+    { validateBeforeSave: true },
+  );
 
   return res
     .status(200)
@@ -168,7 +171,10 @@ const orgDecisionOnProposal = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid action");
   }
 
-  await proposal.save({ new: true },{ validateBeforeSave: true });
+  await proposal.save(
+    { returnDocument: "after" },
+    { validateBeforeSave: true },
+  );
 
   res
     .status(200)
@@ -185,7 +191,10 @@ const orgSendsCounter = asyncHandler(async (req, res) => {
   const { proposalId } = req.params;
   const { counterOffer, counterNote } = req.body;
 
-  const proposal = await Proposal.findById(proposalId).populate("event", "organizer");
+  const proposal = await Proposal.findById(proposalId).populate(
+    "event",
+    "organizer",
+  );
 
   if (!proposal) {
     throw new ApiError(404, "Proposal not found");
@@ -212,7 +221,10 @@ const orgSendsCounter = asyncHandler(async (req, res) => {
   proposal.counterOffer = counterOffer;
   proposal.counterNote = counterNote;
   proposal.counterStatus = "pending";
-  await proposal.save({ new: true }, { validateBeforeSave: true });
+  await proposal.save(
+    { returnDocument: "after" },
+    { validateBeforeSave: true },
+  );
 
   return res
     .status(200)
@@ -223,7 +235,10 @@ const orgUpdateCounter = asyncHandler(async (req, res) => {
   const { proposalId } = req.params;
   const { counterOffer, counterNote } = req.body;
 
-  const proposal = await Proposal.findById(proposalId).populate("event", "organizer");
+  const proposal = await Proposal.findById(proposalId).populate(
+    "event",
+    "organizer",
+  );
 
   if (!proposal) {
     throw new ApiError(404, "Proposal not found");
@@ -242,7 +257,10 @@ const orgUpdateCounter = asyncHandler(async (req, res) => {
 
   proposal.counterOffer = counterOffer;
   proposal.counterNote = counterNote;
-  await proposal.save({ new: true },{ validateBeforeSave: true });
+  await proposal.save(
+    { returnDocument: "after" },
+    { validateBeforeSave: true },
+  );
 
   return res
     .status(200)

@@ -67,11 +67,11 @@ const Navbar = () => {
       {/* ── Logo ── */}
       <div className="navbar-start">
         <Link to="/" className="flex items-center gap-2">
-          <span className="w-8 h-8 flex items-center justify-center rounded-[9px] shrink-0 bg-primary">
+          <span className={`w-8 h-8 flex items-center justify-center rounded-[9px] shrink-0 ${user.role === "organizer" ? "bg-primary" : "bg-secondary/80"}`}>
             <LogoIcon />
           </span>
           <span className="font-medium text-sm sm:text-md font-mono text-amber-50 whitespace-nowrap">
-            Sponsor<span className="text-primary">Sync</span>
+            Sponsor<span className={`${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}>Sync</span>
           </span>
         </Link>
       </div>
@@ -95,7 +95,20 @@ const Navbar = () => {
               </Link>
             </>
           ) : (
-            <div className="relative" ref={dropdownRef}>
+            <div
+              className="relative flex justify-center items-center"
+              ref={dropdownRef}
+            >
+              <div className="text-xs font-medium mr-2">
+                <p>
+                  {user.firstName} {user.lastName}{" "}
+                </p>
+                <p
+                  className={`${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} first-letter:uppercase`}
+                >
+                  {user.role}{" "}
+                </p>
+              </div>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center focus:outline-none rounded-full"
@@ -104,19 +117,19 @@ const Navbar = () => {
                   <img
                     src={user.profileImage}
                     alt={user?.firstName}
-                    className="w-10 h-10 rounded-full object-cover border-8 border-base-300 hover:border-primary transition"
+                    className={`w-10 h-10 rounded-full object-cover border-3 border-base-300  transition ${user.role === "organizer" ? "hover:border-primary/40" : "hover:border-secondary/80"}`}
                   />
                 ) : (
                   <img
                     src="/avatar.jpg"
                     alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover border border-base-300 hover:border-primary transition"
+                    className="w-10 h-10 rounded-full object-cover border-3 border-base-300 hover:border-primary transition"
                   />
                 )}
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-3 w-48 bg-base-200 border border-base-300 rounded-box shadow-lg py-2 z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-base-200 border border-base-300 rounded-box shadow-lg py-2 z-50">
                   {(user?.firstName || user?.email) && (
                     <div className="px-4 py-2 border-b border-base-300 mb-1">
                       <p className="font-semibold text-sm truncate text-base-content">
@@ -131,7 +144,7 @@ const Navbar = () => {
                   <Link
                     to="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition"
+                    className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                   >
                     My Profile
                   </Link>
@@ -151,24 +164,36 @@ const Navbar = () => {
         {/* Mobile Navbar */}
         <div className="relative sm:hidden" ref={mobileRef}>
           {isAuthenticated ? (
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex items-center focus:outline-none rounded-full"
-            >
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user?.firstName}
-                  className="w-10 h-10 rounded-full object-cover border border-base-300 hover:border-primary transition"
-                />
-              ) : (
-                <img
-                  src="/avatar.jpg"
-                  alt="avatar"
-                  className="w-10 h-10 rounded-full object-cover border border-base-300 hover:border-primary transition"
-                />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="text-right text-xs font-medium">
+                <p className="text-base-content">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p
+                  className={`${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} first-letter:uppercase`}
+                >
+                  {user.role}
+                </p>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="flex items-center focus:outline-none rounded-full shrink-0"
+              >
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user?.firstName}
+                    className="w-9 h-9 rounded-full object-cover border border-base-300 hover:border-primary transition"
+                  />
+                ) : (
+                  <img
+                    src="/avatar.jpg"
+                    alt="avatar"
+                    className="w-9 h-9 rounded-full object-cover border border-base-300 hover:border-primary transition"
+                  />
+                )}
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -192,7 +217,7 @@ const Navbar = () => {
 
           {/* Dropdown — mobile*/}
           {mobileMenuOpen && (
-            <div className="absolute right-0 mt-3 w-56 max-w-[90vw] bg-base-200 border border-base-300 rounded-box shadow-lg py-2 z-50">
+            <div className="absolute right-0 top-full mt-2 w-56 max-w-[90vw] bg-base-200 border border-base-300 rounded-box shadow-lg py-2 z-50">
               {!isAuthenticated ? (
                 <div className="p-2 flex flex-col gap-1">
                   <Link
