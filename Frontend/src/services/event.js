@@ -9,7 +9,7 @@ const EventService = {
   },
   getAllEvents: async () => {
     const res = await Api.get("events/");
-    return res;
+    return res.data;
   },
   getOrganizerEvents: async () => {
     const res = await Api.get("events/my-events");
@@ -17,7 +17,7 @@ const EventService = {
   },
   getEventDetails: async (eventId) => {
     const res = await Api.get(`events/${eventId}`);
-    return res;
+    return res.data;
   },
   updateEvent: async (eventId, updatedDetails) => {
     const res = await Api.patch(`events/${eventId}`, updatedDetails, {

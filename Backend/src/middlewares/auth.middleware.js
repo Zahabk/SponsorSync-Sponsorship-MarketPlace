@@ -13,9 +13,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Unauthorized request");
     }
 
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    });
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     const user = await User.findById(decodedToken?._id).select("-password");
 
@@ -30,14 +28,14 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   }
 });
 
-export const authorizeRole = (...roles)=>{
-return asyncHandler(async (req, res, next) => {
-  if (!roles.includes(req.user?.role)) {
-    throw new ApiError(
-      403,
-      `Access denied. ${req.user.role} cannot perform this action`,
-    );
-  }
-  next();
-});
-}
+export const authorizeRole = (...roles) => {
+  return asyncHandler(async (req, res, next) => {
+    if (!roles.includes(req.user?.role)) {
+      throw new ApiError(
+        403,
+        `Access denied. ${req.user.role} cannot perform this action`,
+      );
+    }
+    next();
+  });
+};

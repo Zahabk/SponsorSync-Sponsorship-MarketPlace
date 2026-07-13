@@ -1,8 +1,9 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-const AuthorizedRoute = () => {
+const AuthorizedRoute = ({children,allowedRole}) => {
   const { isAuthenticated, loading, user } = useAuth();
   
   if (loading) return null;

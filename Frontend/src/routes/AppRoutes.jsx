@@ -9,20 +9,37 @@ import CreateEvent from "../pages/CreateEvent";
 import LoginRegisterLayout from "../layouts/LoginRegisterLayout";
 import Profile from "../pages/Profile";
 import AuthorizedRoute from "./AuthorizedRoute";
+import EventDetails from "../pages/EventDetails";
+import PublicRoute from "./PublicRoute";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* For login/register layout  */}
-        <Route path="/" element={<LoginRegisterLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+        <Route element={<LoginRegisterLayout />}>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute>
+                <Signup />
+              </PublicRoute>
+            }
+          />
         </Route>
 
         {/* Main layout  */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="/events" element={<Events />} />
           <Route
             path="/profile"
             element={
@@ -33,14 +50,7 @@ const AppRoutes = () => {
           />
 
           {/* For organizer only */}
-          <Route
-            path="/events"
-            element={
-              <AuthorizedRoute allowedRole={"organizer"}>
-                <Events />
-              </AuthorizedRoute>
-            }
-          />
+
           <Route
             path="create-event"
             element={
@@ -51,6 +61,14 @@ const AppRoutes = () => {
           />
 
           {/* For sponsor only */}
+          <Route
+            path="/events/:id"
+            element={
+              <AuthorizedRoute allowedRole={"sponsor"}>
+                <EventDetails />
+              </AuthorizedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,6 +1,6 @@
 import React from "react";
 import Footer from "../components/Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 
 const LoginRegisterLayout = () => {
   return (

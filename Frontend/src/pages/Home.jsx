@@ -50,13 +50,13 @@ const Home = () => {
         {/* Buttons */}
         <div className="flex flex-wrap justify-center gap-3 z-10">
           <Link
-            to="/"
+            to="/create-event"
             className="btn btn-primary font-semibold btn-md text-amber-50"
           >
             Post Your Event →
           </Link>
           <Link
-            to="/"
+            to="/events"
             className="btn btn-md bg-transparent font-medium border border-primary text-primary hover:bg-primary/20"
           >
             Browse Events
