@@ -6,11 +6,11 @@ import EventService from "../services/event";
 const Events = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Increased from 2 for a standard full grid viewport
+  const itemsPerPage = 6;
 
   const currentData = allEvents.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const Events = () => {
       }
     };
     fetchEvents();
-  }, []);
+  },[]);
 
   return (
     <div className="flex flex-col min-h-screen bg-base-100 text-base-content">
@@ -38,7 +38,7 @@ const Events = () => {
             <p className="text-sm">No events found at the moment.</p>
           </div>
         ) : (
-          /* Responsive adaptive grid blueprint layout */
+          // Event cards
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {currentData.map((event) => (
               <EventCard key={event._id} event={event} />
@@ -47,18 +47,17 @@ const Events = () => {
         )}
       </main>
 
-      {/* Pagination Footer */}
-      <footer className="w-full px-4 border-t border-base-300/30 bg-base-100/50 backdrop-blur-md">
-        <Pagination
-          totalItems={allEvents.length}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        />
-      </footer>
+      {/* Pagination */}
+
+      <Pagination
+        totalItems={allEvents.length}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+        onPageChange={(page) => {
+          setCurrentPage(page);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </div>
   );
 };

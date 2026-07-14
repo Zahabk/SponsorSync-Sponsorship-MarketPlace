@@ -5,7 +5,7 @@ const EventService = {
     const res = await Api.post("events/", eventData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res;
+    return res.data;
   },
   getAllEvents: async () => {
     const res = await Api.get("events/");

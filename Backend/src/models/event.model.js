@@ -9,7 +9,7 @@ const tierSchema = new Schema(
     price: Number,
     benefits: [String],
   },
-  { _id: false }
+  { _id: false },
 );
 
 const eventSchema = new Schema(
@@ -52,35 +52,8 @@ const eventSchema = new Schema(
     },
     tiers: {
       type: [tierSchema],
-      default: () => [
-        {
-          name: "Gold",
-          price: 100000,
-          benefits: [
-            "Premium logo placement on all event materials",
-            "Dedicated booth/stall space",
-            "Stage mention/announcement",
-            "VIP passes for team",
-          ],
-        },
-        {
-          name: "Silver",
-          price: 50000,
-          benefits: [
-            "Logo placement on banners and digital screens",
-            "Standard booth/stall space",
-            "Event passes for team",
-          ],
-        },
-        {
-          name: "Bronze",
-          price: 20000,
-          benefits: [
-            "Logo on event website and social media",
-            "Limited passes for team",
-          ],
-        },
-      ],
+
+      required: true,
     },
     proposalDeadline: {
       type: Date,
@@ -98,5 +71,39 @@ const eventSchema = new Schema(
   },
   { timestamps: true },
 );
+
+eventSchema.pre("validate", function () {
+  if (!this.tiers || this.tiers.length === 0) {
+    this.tiers = [
+      {
+        name: "Gold",
+        price: 10000,
+        benefits: [
+          "Premium logo placement on all event materials",
+          "Dedicated booth/stall space",
+          "Stage mention/announcement",
+          "VIP passes for team",
+        ],
+      },
+      {
+        name: "Silver",
+        price: 5000,
+        benefits: [
+          "Logo placement on banners and digital screens",
+          "Standard booth/stall space",
+          "Event passes for team",
+        ],
+      },
+      {
+        name: "Bronze",
+        price: 2500,
+        benefits: [
+          "Logo on event website and social media",
+          "Limited passes for team",
+        ],
+      },
+    ];
+  }
+});
 
 export const Event = model("Event", eventSchema);

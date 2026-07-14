@@ -54,14 +54,23 @@ const EventCard = ({ event }) => {
     >
       {/* banner  */}
       <figure className="relative h-44 w-full overflow-hidden shrink-0">
-        <img
-          src={event.banner}
-          alt={event.title}
-          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
-            hovered ? "scale-105 filter brightness-95" : "scale-100"
-          }`}
-          loading="lazy"
-        />
+        {event.banner ? (
+          <img
+            src={event.banner}
+            alt={event.title}
+            className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+              hovered ? "scale-105 filter brightness-95" : "scale-100"
+            }`}
+          />
+        ) : (
+          <img
+            src="https://placehold.co/1200x400?text=Event+Banner"
+            alt={event.title}
+            className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+              hovered ? "scale-105 filter brightness-95" : "scale-100"
+            }`}
+          />
+        )}
         <div className="absolute inset-0 bg-linear-to-t from-base-200 via-transparent to-black/20" />
 
         {/*Proposal deadline */}
@@ -91,19 +100,28 @@ const EventCard = ({ event }) => {
       {/* ── Content section ── */}
       <div className="card-body p-5 gap-0 flex-1 flex flex-col justify-between">
         <div>
-          {/* Title */}
-          <h3 className="card-title text-base font-bold tracking-tight text-base-content leading-snug line-clamp-1 mb-1.5 group-hover:text-primary transition-colors duration-200">
-            {event.title}
-          </h3>
+          <div className="flex justify-between">
+            {/* Title */}
+            <h3 className="card-title text-base font-bold  text-base-content mb-1.5 group-hover:text-primary transition-colors duration-200">
+              {event.title}
+            </h3>
 
-          {/* Description Block */}
-          <p className="text-xs text-base-content/60 leading-relaxed line-clamp-2 mb-4">
+            {/* event status  */}
+            <div
+              className={`flex justify-center items-center px-6 font-mono font-medium text-md  rounded-4xl border ${event.status === "open" ? "bg-primary/20 border-primary/60 " : " bg-red-500/20 border-red-500/50"}`}
+            >
+              {event.status}
+            </div>
+          </div>
+          {/* Description */}
+          <p className="text-xs text-base-content/60 leading-relaxed line-clamp-2 mb-4 mt-2">
             {event.description}
           </p>
         </div>
 
         <div>
-          <div className="grid grid-cols-2 gap-y-2 gap-x-2 text-[11px] text-base-content/50 border-t border-base-300/40 pt-3.5 mb-4">
+          {/* Location, Attendees, event date  */}
+          <div className="grid grid-cols-2 gap-y-2 gap-x-2 teg-widerxt-[11px] text-base-content/50 border-t border-base-300/40 pt-3.5 mb-4">
             <div className="flex items-center gap-1.5 min-w-0">
               <IoCalendarOutline className="w-4.5 h-4.5 text-primary" />
               <span className="truncate font-medium text-base-content/70">
@@ -115,7 +133,6 @@ const EventCard = ({ event }) => {
               <IoLocationOutline className="w-4.5 h-4.5 text-secondary/80" />
               <span className="truncate font-medium text-base-content/70">
                 {event.location}
-                {/* {event.location.split(",")[0]} */}
               </span>
             </div>
             <div className="flex items-center gap-1.5 min-w-0 col-span-2">
@@ -128,6 +145,8 @@ const EventCard = ({ event }) => {
               </span>
             </div>
           </div>
+
+          {/* starting tier  */}
 
           <div className="flex items-center justify-between border-t border-base-300/40 pt-3">
             <div className="flex flex-col">
