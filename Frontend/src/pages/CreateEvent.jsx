@@ -32,7 +32,7 @@ const INITIAL_TIERS = [
 const DEFAULT_TIER_INFO = [
   {
     name: "Gold",
-    price: 10000,
+    price: 100,
     benefits: [
       "Premium logo placement on all event materials",
       "Dedicated booth/stall space",
@@ -42,7 +42,7 @@ const DEFAULT_TIER_INFO = [
   },
   {
     name: "Silver",
-    price: 5000,
+    price: 50,
     benefits: [
       "Logo placement on banners and digital screens",
       "Standard booth/stall space",
@@ -51,7 +51,7 @@ const DEFAULT_TIER_INFO = [
   },
   {
     name: "Bronze",
-    price: 2500,
+    price: 25,
     benefits: [
       "Logo on event website and social media",
       "Limited passes for team",
@@ -98,7 +98,11 @@ const CreateEvent = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const tiersPayload = tiers.map(({ name, amount, perks }) => ({
+      const filledTiers = tiers.filter(
+        ({ amount, perks }) => Number(amount) > 0 || perks.trim() !== "",
+      );
+
+      const tiersPayload = filledTiers.map(({ name, amount, perks }) => ({
         name,
         price: Number(amount),
         benefits: perks
@@ -109,8 +113,18 @@ const CreateEvent = () => {
 
       const data = new FormData();
       Object.entries(formData).forEach(([k, v]) => data.append(k, v));
+      // Send empty array if no tiers filled → backend default will apply
       data.append("tiers", JSON.stringify(tiersPayload));
       if (bannerFile) data.append("banner", bannerFile);
+
+      if (formData.proposalDeadline >= formData.eventDate) {
+        toast.error("Proposal deadline should be before event date");
+        return;
+      }
+      if (formData.eventDate < Date.now()) {
+        toast.error("Event Date not be before today's date");
+        return;
+      }
 
       await EventService.createEvent(data);
       toast.success("Event created successfully!");

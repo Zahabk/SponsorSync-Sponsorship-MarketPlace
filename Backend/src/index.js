@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import connectDB from "./db/dbConnection.js";
 import { app } from "./app.js";
 import dns from "dns";
+import { startEventStatusJob } from "./jobs/closeExpiredEvents.js";
 
 dotenv.config({
   path: "./.env",
@@ -16,6 +17,7 @@ const port = process.env.PORT || 8000;
 
 connectDB()
   .then(() => {
+    startEventStatusJob();
     app.listen(port, () => {
       console.log(`Server is running: http://localhost:${port}`);
     });

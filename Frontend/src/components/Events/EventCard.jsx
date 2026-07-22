@@ -5,6 +5,7 @@ import {
   IoLocationOutline,
   IoPeopleOutline,
 } from "react-icons/io5";
+import { FcAlarmClock } from "react-icons/fc";
 
 const BADGE_STYLE = {
   conference: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -24,18 +25,15 @@ const EventCard = ({ event }) => {
     year: "numeric",
   });
 
-  // 2. Compute minimum tier price
   const startingPrice = event.tiers?.length
     ? Math.min(...event.tiers.map((t) => t.price)).toLocaleString()
     : "0";
 
-  // 3. Dynamic countdown tracker metric based on the application time horizon
   const calculateDaysLeft = (deadlineStr) => {
     if (!deadlineStr) return null;
-    const today = new Date("2026-07-09T16:04:00.000Z"); // Synced to systemic timeline parameters
+    const today = new Date();
     const deadline = new Date(deadlineStr);
-    const diffTime = deadline - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
 
@@ -82,8 +80,12 @@ const EventCard = ({ event }) => {
                 : "bg-base-300/80 text-base-content border-base-100/20"
             }`}
           >
-            ⏰{" "}
-            {daysLeft === 0 ? "DEADLINE PASSED" : `${daysLeft}d LEFT TO APPLY`}
+            <div className="flex items-center gap-1">
+              <FcAlarmClock className="text-lg" />
+              {daysLeft === 0
+                ? "DEADLINE PASSED"
+                : `${daysLeft}d LEFT TO APPLY`}
+            </div>
           </div>
         )}
 
@@ -108,7 +110,11 @@ const EventCard = ({ event }) => {
 
             {/* event status  */}
             <div
-              className={`flex justify-center items-center px-6 font-mono font-medium text-md  rounded-4xl border ${event.status === "open" ? "bg-primary/20 border-primary/60 " : " bg-red-500/20 border-red-500/50"}`}
+              className={`flex justify-center items-center px-6 font-mono font-medium text-xs  rounded-4xl border ${
+                event.status === "open"
+                  ? "bg-primary/20 border-primary/60 text-primary"
+                  : "bg-red-500/20 border-red-500/50 text-red-400"
+              }`}
             >
               {event.status}
             </div>

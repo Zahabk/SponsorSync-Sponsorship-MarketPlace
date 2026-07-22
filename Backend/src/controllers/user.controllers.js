@@ -76,24 +76,27 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
 
-  //Welcome mail sent to user
-  // try {
-  //   await sendEmail({
-  //     to: user.email,
-  //     subject: "Welcome to SponsorSync 🎉",
-  //     html: `
-  //       <div style="font-family: sans-serif; padding: 20px;">
-  //         <h2>Hi ${user.fullName},</h2>
-  //         <p>Thanks for signing up! Your account has been created successfully.</p>
-  //       </div>
-  //     `,
-  //   });
-  // } catch (err) {
-  //   console.error("Failed to send welcome email:", err);
-  // }
+  // Welcome mail sent to user
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "Welcome to SponsorSync 🎉",
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2>Hi ${user.firstName} ${user.lastName},</h2>
+          <p>Thanks for signing up! Your account has been created successfully.</p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+  }
+
+  const accessToken= await generateToken(user._id)
 
   return res
     .status(201)
+    .cookie("accessToken",accessToken,options)
     .json(new ApiResponse(201, "User registered successfully", createdUser));
 });
 

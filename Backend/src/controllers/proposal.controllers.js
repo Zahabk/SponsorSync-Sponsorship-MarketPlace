@@ -128,6 +128,30 @@ const sponsorRespondToCounter = asyncHandler(async (req, res) => {
 });
 
 //organizer only
+const getOrganizerProposals = asyncHandler(async (req, res) => {
+  const organizerEvents = await Event.find({ organizer: req.user?._id }).select(
+    "_id",
+  );
+  const eventIds = organizerEvents.map((event) => event._id);
+
+  if (eventIds.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "No events found for this organizer", []));
+  }
+
+  const allProposals = await Proposal.find({
+    event: { $in: eventIds },
+  })
+    .populate("sponsor", "firstName lastName email")
+    .populate("event", "title eventDate eventType")
+    .sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Proposals fetched successfully", allProposals));
+});
+
 const getEventProposals = asyncHandler(async (req, res) => {
   const { eventId } = req.params;
 
@@ -276,4 +300,5 @@ export {
   orgUpdateCounter,
   orgDecisionOnProposal,
   sponsorRespondToCounter,
+  getOrganizerProposals,
 };

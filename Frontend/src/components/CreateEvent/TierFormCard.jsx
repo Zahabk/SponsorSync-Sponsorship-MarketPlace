@@ -18,13 +18,14 @@ const TierFormCard = ({ tier, index, onChange }) => {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-base-content/60">Amount (₹)</label>
+        <label className="text-xs font-semibold text-base-content/60">Amount ($)</label>
         <input
           type="number"
           value={tier.amount}
           onChange={(e) => onChange(index, "amount", e.target.value)}
           placeholder="e.g. 50000"
           className={inputCls}
+          min={0}
         />
       </div>
 

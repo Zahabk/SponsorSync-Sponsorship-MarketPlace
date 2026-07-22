@@ -77,7 +77,7 @@ eventSchema.pre("validate", function () {
     this.tiers = [
       {
         name: "Gold",
-        price: 10000,
+        price: 100,
         benefits: [
           "Premium logo placement on all event materials",
           "Dedicated booth/stall space",
@@ -87,7 +87,7 @@ eventSchema.pre("validate", function () {
       },
       {
         name: "Silver",
-        price: 5000,
+        price: 50,
         benefits: [
           "Logo placement on banners and digital screens",
           "Standard booth/stall space",
@@ -96,7 +96,7 @@ eventSchema.pre("validate", function () {
       },
       {
         name: "Bronze",
-        price: 2500,
+        price: 25,
         benefits: [
           "Logo on event website and social media",
           "Limited passes for team",

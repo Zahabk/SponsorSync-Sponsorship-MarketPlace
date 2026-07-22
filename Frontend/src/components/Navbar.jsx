@@ -1,18 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-const LogoIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    style={{ width: 16, height: 16 }}
-    fill="none"
-    stroke="#fff"
-    strokeWidth="1.8"
-  >
-    <path d="M10 2L3 6v8l7 4 7-4V6L10 2zm0 2.5L15.2 8 10 11.5 4.8 8 10 4.5zM4 9.5l5.2 3v5.2L4 14.7V9.5zm7.2 8.2V12.5l5.2-3v5.2l-5.2 3z" />
-  </svg>
-);
+import { LogoIcon } from "./LogoIcon";
+import { FaRegUserCircle } from "react-icons/fa";
+import { MdOutlineDashboard, MdOutlineCreate, MdLogout } from "react-icons/md";
 
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -72,7 +63,7 @@ const Navbar = () => {
           >
             <LogoIcon />
           </span>
-          <span className="font-medium text-sm sm:text-md font-mono text-amber-50 whitespace-nowrap">
+          <span className="font-medium text-sm sm:text-md font-mono text-base-content whitespace-nowrap">
             Sponsor
             <span
               className={`${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
@@ -105,18 +96,10 @@ const Navbar = () => {
             <div className={`flex justify-center items-center gap-6  `}>
               <Link
                 to="/events"
-                className={`text-sm font-bold ${user?.role === "organizer" ? "hover:text-primary/80" : "hover:text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} text-base-content/80`}
+                className={`text-xs font-bold ${user?.role === "organizer" ? "hover:text-primary/80" : "hover:text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} text-base-content/80`}
               >
                 Browse Events
               </Link>
-              {user.role === "organizer" && (
-                <Link
-                  to="/create-event"
-                  className={`text-xs font-bold ${user?.role === "organizer" ? "hover:text-primary/80" : "hover:text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} text-base-content/80`}
-                >
-                  Create Event
-                </Link>
-              )}
 
               <div
                 className="relative flex justify-center items-center"
@@ -164,13 +147,38 @@ const Navbar = () => {
                       onClick={() => setDropdownOpen(false)}
                       className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                     >
+                      <FaRegUserCircle className="mr-1" />
                       My Profile
                     </Link>
+
+                    <Link
+                      to={
+                        user?.role === "organizer"
+                          ? "/dashboard"
+                          : "/sponsor/dashboard"
+                      }
+                      onClick={() => setDropdownOpen(false)}
+                      className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                    >
+                      <MdOutlineDashboard className="mr-1" />
+                      Dashboard
+                    </Link>
+                    {user.role === "organizer" && (
+                      <Link
+                        to="/create-event"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition"
+                      >
+                        <MdOutlineCreate className="mr-1" />
+                        Create Event
+                      </Link>
+                    )}
 
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-error hover:bg-error/10 transition mt-1 border-t border-base-300 pt-2"
                     >
+                      <MdLogout className="mr-1" />
                       Log Out
                     </button>
                   </div>
@@ -271,14 +279,38 @@ const Navbar = () => {
                   <Link
                     to="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition"
+                    className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                   >
+                    <FaRegUserCircle className="mr-1" />
                     My Profile
                   </Link>
+                  <Link
+                    to={
+                      user?.role === "organizer"
+                        ? "/dashboard"
+                        : "/sponsor/dashboard"
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                  >
+                    <MdOutlineDashboard className="mr-1" />
+                    Dashboard
+                  </Link>
+                  {user?.role === "organizer" && (
+                    <Link
+                      to="/create-event"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition"
+                    >
+                      <MdOutlineCreate className="mr-1" />
+                      Create Event
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full px-4 py-2 text-sm text-error hover:bg-error/10 transition mt-1 border-t border-base-300 pt-2"
                   >
+                    <MdLogout className="mr-1" />
                     Log Out
                   </button>
                 </>

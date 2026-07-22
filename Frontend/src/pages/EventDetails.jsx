@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FiCalendar, FiMapPin, FiUsers, FiClock } from "react-icons/fi";
 import EventService from "../services/event";
-import TierCard from "../components/TierCard";
-import ProposalSidebar from "../components/ProposalSidebar";
+import TierCard from "../components/EventDetails/TierCard";
+import ProposalSidebar from "../components/EventDetails/ProposalSidebar";
+import { useAuth } from "../context/AuthContext";
 
 const TIER_ORDER = ["Bronze", "Gold", "Silver"];
 const fmtDate = (d) => {
@@ -16,6 +17,8 @@ const fmtDate = (d) => {
 };
 
 const EventDetails = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +79,13 @@ const EventDetails = () => {
 
         <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-slate-900/10 via-slate-900/60 to-slate-900" />
 
+        {/* back button  */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 z-20 flex items-center gap-1.5 text-white/70 hover:text-white text-sm transition-colors"
+        >
+          ← Back
+        </button>
         {/* Hero content */}
         <div className="relative w-full flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 sm:px-8 pb-6 pt-24 z-10">
           <div className="flex-1 min-w-0">
@@ -185,7 +195,29 @@ const EventDetails = () => {
 
         {/* Proposal Sidebar */}
         <aside className="lg:sticky lg:top-6 w-full">
-          <ProposalSidebar event={event} />
+          {event.status === "closed" ? (
+            <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-red-500/30 bg-red-500/10 text-center">
+              <div className="text-5xl">🔒</div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-400 font-mono uppercase tracking-wide">
+                  Event Closed
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {user?.role === "sponsor"
+                    ? "The sponsorship window has closed. You can no longer submit proposals for this event."
+                    : "This event has ended."}
+                </p>
+              </div>
+              <div className="w-full border-t border-red-500/20 pt-4 text-xs text-muted-foreground">
+                Event took place on{" "}
+                <span className="text-red-400 font-medium">
+                  {new Date(event.eventDate).toDateString()}
+                </span>
+              </div>
+            </div>
+          ) : user?.role === "sponsor" ? (
+            <ProposalSidebar event={event} />
+          ) : null}
         </aside>
       </div>
     </div>

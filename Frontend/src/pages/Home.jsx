@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { BsMegaphone,BsGraphUpArrow } from "react-icons/bs";
 
 const steps = [
   {
@@ -116,20 +117,7 @@ const Home = () => {
             <div className="bg-primary/10 border border-base-300 rounded-2xl p-8 flex flex-col justify-between text-left h-full">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-6">
-                  <svg
-                    xmlns="http://w3.org"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.34 15.84c-.68-.34-1.44-.2-1.95.34l-2.05 2.18A1 1 0 0 1 4.7 17.5V6.5a1 1 0 0 1 .5-.86l8-4.62a1 1 0 0 1 1 0l8 4.62a1 1 0 0 1 .5.86v4.75a1 1 0 0 1-.22.62l-2.5 3.07a1.5 1.5 0 0 1-2.12.22l-1.02-.8a.5.5 0 0 0-.52 0l-3 2a.5.5 0 0 0-.52 0Z"
-                    />
-                  </svg>
+                  <BsMegaphone className="text-2xl"/>
                 </div>
                 <h3 className="text-xl font-bold text-primary mb-3">
                   For Event Organizers
@@ -163,20 +151,7 @@ const Home = () => {
             <div className="bg-secondary/10 border border-base-300 rounded-2xl p-8 flex flex-col justify-between text-left h-full">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)] mb-6">
-                  <svg
-                    xmlns="http://w3.org"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 18 9 11.25l4.306 4.306a1.194 1.194 0 0 0 1.698 0L21.75 6.5m0 0H17.25m4.5 0v4.5"
-                    />
-                  </svg>
+                 <BsGraphUpArrow className="text-2xl"/>
                 </div>
 
                 <h3 className="text-xl font-bold text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)] mb-3">

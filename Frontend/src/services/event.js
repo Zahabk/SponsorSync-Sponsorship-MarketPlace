@@ -13,7 +13,7 @@ const EventService = {
   },
   getOrganizerEvents: async () => {
     const res = await Api.get("events/my-events");
-    return res;
+    return res.data;
   },
   getEventDetails: async (eventId) => {
     const res = await Api.get(`events/${eventId}`);
@@ -23,17 +23,17 @@ const EventService = {
     const res = await Api.patch(`events/${eventId}`, updatedDetails, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res;
+    return res.data;
   },
   updateEventBanner: async (eventId, newBanner) => {
     const res = await Api.patch(`events/banner/${eventId}`, newBanner, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res;
+    return res.data;
   },
   deleteEvent: async (eventId) => {
     const res = await Api.delete(`events/${eventId}`);
-    return res;
+    return res.data;
   },
 };
 

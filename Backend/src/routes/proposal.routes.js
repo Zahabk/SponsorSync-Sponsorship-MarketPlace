@@ -3,6 +3,7 @@ import { authorizeRole, verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   getEventProposals,
   getMyProposal,
+  getOrganizerProposals,
   orgDecisionOnProposal,
   orgSendsCounter,
   orgUpdateCounter,
@@ -13,19 +14,25 @@ import {
 
 const router = Router();
 
+//organizer only
+
+router
+  .route("/")
+  .get(verifyJWT, authorizeRole("organizer"), getOrganizerProposals);
 
 //sponsor only
 router
   .route("/:eventId")
   .post(verifyJWT, authorizeRole("sponsor"), submitProposal);
 router.route("/mine").get(verifyJWT, authorizeRole("sponsor"), getMyProposal);
-router.route("/:proposalId").patch(verifyJWT, authorizeRole("sponsor"), updateProposal);
+router
+  .route("/:proposalId")
+  .patch(verifyJWT, authorizeRole("sponsor"), updateProposal);
 router
   .route("/respond/:proposalId/:action")
   .patch(verifyJWT, authorizeRole("sponsor"), sponsorRespondToCounter);
 
 //organizer only
-
 router
   .route("/:eventId")
   .get(verifyJWT, authorizeRole("organizer"), getEventProposals);

@@ -15,12 +15,12 @@ const TierReferenceCard = ({ tier }) => {
           {tier.name}
         </div>
         <span className="text-sm font-semibold text-base-content">
-          ₹{tier.price.toLocaleString()}
+          ${tier.price.toLocaleString()}
         </span>
       </div>
       <div className="flex flex-col gap-1">
-        {tier.benefits.map((benefit, idx) => (
-          <div key={idx} className="flex items-start gap-2 text-xs text-base-content/70">
+        {tier.benefits.map((benefit, i) => (
+          <div key={i} className="flex items-start gap-2 text-xs text-base-content/70">
             <span className="text-primary mt-0.5">✓</span>
             <span>{benefit}</span>
           </div>

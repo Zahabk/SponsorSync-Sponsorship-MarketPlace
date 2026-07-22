@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import EventCard from "../components/EventCard";
-import Pagination from "../components/Pagination";
+import EventCard from "../components/Events/EventCard";
+import Pagination from "../components/Events/Pagination";
 import EventService from "../services/event";
 
 const Events = () => {

@@ -11,6 +11,11 @@ import Profile from "../pages/Profile";
 import AuthorizedRoute from "./AuthorizedRoute";
 import EventDetails from "../pages/EventDetails";
 import PublicRoute from "./PublicRoute";
+import OrganizerDashboard from "../pages/OrganizerDashboard";
+import DashboardLayout from "../layouts/DashboardLayout";
+import SponsorDashboard from "../pages/SponsorDashboard";
+import MyEvents from "../pages/MyEvents";
+import Proposals from "../pages/Proposals";
 
 const AppRoutes = () => {
   return (
@@ -48,8 +53,14 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
-          {/* For organizer only */}
+          <Route
+            path="/events/:id"
+            element={
+              <ProtectedRoute>
+                <EventDetails />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="create-event"
@@ -59,16 +70,38 @@ const AppRoutes = () => {
               </AuthorizedRoute>
             }
           />
+          
+        </Route>
 
-          {/* For sponsor only */}
+        {/* Dashboard Layout  */}
+        <Route element={<DashboardLayout/>}>
           <Route
-            path="/events/:id"
+            path="/dashboard"
+            element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <OrganizerDashboard />
+              </AuthorizedRoute>
+            }
+            />
+            <Route path="/dashboard/events" element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <MyEvents/>
+              </AuthorizedRoute>
+            } />
+            <Route path="/dashboard/proposals" element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <Proposals/>
+              </AuthorizedRoute>
+            } />
+          <Route
+            path="/sponsor/dashboard"
             element={
               <AuthorizedRoute allowedRole={"sponsor"}>
-                <EventDetails />
+                <SponsorDashboard />
               </AuthorizedRoute>
             }
           />
+
         </Route>
       </Routes>
     </BrowserRouter>
