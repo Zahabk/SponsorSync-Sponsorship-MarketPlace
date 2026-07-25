@@ -7,14 +7,6 @@ import ProposalSidebar from "../components/EventDetails/ProposalSidebar";
 import { useAuth } from "../context/AuthContext";
 
 const TIER_ORDER = ["Bronze", "Gold", "Silver"];
-const fmtDate = (d) => {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
 
 const EventDetails = () => {
   const navigate = useNavigate();
@@ -25,7 +17,7 @@ const EventDetails = () => {
 
   useEffect(() => {
     if (!id) return;
-    const load = async () => {
+    const eventDetails = async () => {
       setLoading(true);
       try {
         const res = await EventService.getEventDetails(id);
@@ -38,10 +30,9 @@ const EventDetails = () => {
         setLoading(false);
       }
     };
-    load();
+    eventDetails();
   }, [id]);
 
-  /* ── Loading ── */
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-base-100">
@@ -50,8 +41,15 @@ const EventDetails = () => {
     );
   }
 
-  const eventDate = fmtDate(event.eventDate);
-  const deadline = fmtDate(event.proposalDeadline);
+  const eventDate = new Date(event.eventDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const deadline = new Date(event.proposalDeadline).toLocaleDateString(
+    "en-US",
+    { month: "short", day: "numeric", year: "numeric" },
+  );
 
   const orderedTiers = TIER_ORDER.map((name) =>
     event.tiers?.find((t) => t.name === name),
@@ -195,29 +193,64 @@ const EventDetails = () => {
 
         {/* Proposal Sidebar */}
         <aside className="lg:sticky lg:top-6 w-full">
-          {event.status === "closed" ? (
-            <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-red-500/30 bg-red-500/10 text-center">
-              <div className="text-5xl">🔒</div>
-              <div>
-                <h3 className="text-lg font-semibold text-red-400 font-mono uppercase tracking-wide">
-                  Event Closed
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {user?.role === "sponsor"
-                    ? "The sponsorship window has closed. You can no longer submit proposals for this event."
-                    : "This event has ended."}
-                </p>
-              </div>
-              <div className="w-full border-t border-red-500/20 pt-4 text-xs text-muted-foreground">
-                Event took place on{" "}
-                <span className="text-red-400 font-medium">
-                  {new Date(event.eventDate).toDateString()}
-                </span>
-              </div>
-            </div>
-          ) : user?.role === "sponsor" ? (
-            <ProposalSidebar event={event} />
-          ) : null}
+          {(() => {
+            const now = new Date();
+            const isDeadlinePassed =
+              event.proposalDeadline && new Date(event.proposalDeadline) < now;
+
+            if (event.status === "closed") {
+              return (
+                <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-red-500/30 bg-red-500/10 text-center">
+                  <div className="text-5xl">🔒</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-400 font-mono uppercase tracking-wide">
+                      Event Closed
+                    </h3>
+                    <p className="text-sm text-base-content/50 mt-1">
+                      {user?.role === "sponsor"
+                        ? "The sponsorship window has closed. You can no longer submit proposals for this event."
+                        : "This event has ended."}
+                    </p>
+                  </div>
+                  <div className="w-full border-t border-red-500/20 pt-4 text-xs text-base-content/40">
+                    Event took place on{" "}
+                    <span className="text-red-400 font-medium">
+                      {new Date(event.eventDate).toDateString()}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
+            if (isDeadlinePassed) {
+              return (
+                <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-center">
+                  <div className="text-5xl">⏰</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-amber-400 font-mono uppercase tracking-wide">
+                      Proposals Closed
+                    </h3>
+                    <p className="text-sm text-base-content/50 mt-1">
+                      The proposal submission deadline has passed. This event is
+                      still upcoming but is no longer accepting sponsors.
+                    </p>
+                  </div>
+                  <div className="w-full border-t border-amber-500/20 pt-4 text-xs text-base-content/40">
+                    Deadline was{" "}
+                    <span className="text-amber-400 font-medium">
+                      {new Date(event.proposalDeadline).toDateString()}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
+            if (user?.role === "sponsor") {
+              return <ProposalSidebar event={event} />;
+            }
+
+            return null;
+          })()}
         </aside>
       </div>
     </div>

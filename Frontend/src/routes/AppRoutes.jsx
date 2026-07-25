@@ -13,9 +13,10 @@ import EventDetails from "../pages/EventDetails";
 import PublicRoute from "./PublicRoute";
 import OrganizerDashboard from "../pages/OrganizerDashboard";
 import DashboardLayout from "../layouts/DashboardLayout";
-import SponsorDashboard from "../pages/SponsorDashboard";
 import MyEvents from "../pages/MyEvents";
 import Proposals from "../pages/Proposals";
+import MyProposals from "../pages/MyProposals";
+import EditEvent from "../pages/EditEvent";
 
 const AppRoutes = () => {
   return (
@@ -70,11 +71,18 @@ const AppRoutes = () => {
               </AuthorizedRoute>
             }
           />
-          
+           <Route
+            path="/my-proposals"
+            element={
+              <AuthorizedRoute allowedRole={"sponsor"}>
+                <MyProposals />
+              </AuthorizedRoute>
+            }
+          />
         </Route>
 
         {/* Dashboard Layout  */}
-        <Route element={<DashboardLayout/>}>
+        <Route element={<DashboardLayout />}>
           <Route
             path="/dashboard"
             element={
@@ -82,26 +90,31 @@ const AppRoutes = () => {
                 <OrganizerDashboard />
               </AuthorizedRoute>
             }
-            />
-            <Route path="/dashboard/events" element={
-              <AuthorizedRoute allowedRole={"organizer"}>
-                <MyEvents/>
-              </AuthorizedRoute>
-            } />
-            <Route path="/dashboard/proposals" element={
-              <AuthorizedRoute allowedRole={"organizer"}>
-                <Proposals/>
-              </AuthorizedRoute>
-            } />
+          />
           <Route
-            path="/sponsor/dashboard"
+            path="/dashboard/events"
             element={
-              <AuthorizedRoute allowedRole={"sponsor"}>
-                <SponsorDashboard />
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <MyEvents />
               </AuthorizedRoute>
             }
           />
-
+          <Route
+            path="/dashboard/events/:id"
+            element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <EditEvent />
+              </AuthorizedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/proposals"
+            element={
+              <AuthorizedRoute allowedRole={"organizer"}>
+                <Proposals />
+              </AuthorizedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

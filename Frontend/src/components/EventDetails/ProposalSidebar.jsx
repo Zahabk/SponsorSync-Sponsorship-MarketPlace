@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { FiSend } from "react-icons/fi";
+import ProposalService from "../../services/proposal";
+import { toast } from "react-toastify"
 
 const SIDEBAR_NAMES = {
   Gold: "Gold Package",
@@ -7,30 +9,52 @@ const SIDEBAR_NAMES = {
   Bronze: "Bronze Package",
 };
 
-const ProposalSidebar = ({ event, onSubmit, submitted }) => {
+const ProposalSidebar = ({ event }) => {
   const tiers = event?.tiers || [];
-  const [selectedTier, setSelectedTier] = useState("");
+  const [selectedTier, setSelectedTier] = useState({ name: "", price: 0 });
+  const [proposedBudget, setProposedBudget] = useState("");
   const [pitch, setPitch] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleTierChange = (tier) => {
+    setSelectedTier({ name: tier.name, price: tier.price });
+    setProposedBudget(tier.price);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedTier) return;
+    if (!selectedTier.name) return;
 
-    // const chosenTierObj = activeTiers.find((t) => t.name === selectedTier);
+    const proposalDetails = {
+      tier: selectedTier.name,
+      proposedBudget: Number(proposedBudget),
+      message: pitch,
+    };
 
-    // onSubmit?.({
-    //   tier: selectedTier,
-    //   budget: chosenTierObj?.price || 0,
-    //   pitch: pitch,
-    // });
-    submitted = true;
-    console.log(
-      `Selected tier: ${selectedTier} and message: ${pitch}, ${submitted}`,
-    );
+    try {
+      const res = await ProposalService.submitProposal(
+        event._id,
+        proposalDetails,
+      );
+      console.log(res.data);
 
-    // Reset fields on success
-    setSelectedTier("");
-    setPitch("");
+      toast.success("Proposal Submitted Successfully!!")
+      setSubmitted(true);
+      setSelectedTier({ name: "", price: 0 });
+      setProposedBudget("");
+      setPitch("");
+    } catch (err) {
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message;
+
+      if (status === 409) {
+        toast.error(
+          message || "You have already submitted a proposal for this event.",
+        );
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
@@ -50,7 +74,7 @@ const ProposalSidebar = ({ event, onSubmit, submitted }) => {
               <label
                 key={tier.name}
                 className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
-                  selectedTier === tier.name
+                  selectedTier.name === tier.name
                     ? "border-primary bg-primary/5 text-base-content"
                     : "border-base-300 bg-base-100 text-base-content/70 hover:bg-base-300/40"
                 }`}
@@ -59,8 +83,8 @@ const ProposalSidebar = ({ event, onSubmit, submitted }) => {
                   <input
                     type="radio"
                     name="sidebar-tier"
-                    checked={selectedTier === tier.name}
-                    onChange={() => setSelectedTier(tier.name)}
+                    checked={selectedTier.name === tier.name}
+                    onChange={() => handleTierChange(tier)}
                     className="radio radio-primary radio-sm"
                   />
                   <span className="text-[13px] font-semibold">
@@ -75,6 +99,34 @@ const ProposalSidebar = ({ event, onSubmit, submitted }) => {
           </div>
         </div>
 
+        {/* Proposed Budget */}
+        <div className="space-y-1.5">
+          <label className="block text-[11px] font-mono uppercase tracking-wider text-base-content/60">
+            Proposed Budget
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-mono text-base-content/50">
+              $
+            </span>
+            <input
+              type="number"
+              min={0}
+              value={proposedBudget}
+              onChange={(e) => setProposedBudget(e.target.value)}
+              placeholder="Enter your budget"
+              required
+              className="input input-bordered w-full pl-7 text-[13px] font-mono focus:outline-none focus:border-primary"
+            />
+          </div>
+          {selectedTier.price > 0 &&
+            Number(proposedBudget) < selectedTier.price && (
+              <p className="text-[11px] text-warning/80">
+                Below the listed tier price of $
+                {selectedTier.price.toLocaleString()}
+              </p>
+            )}
+        </div>
+
         {/* Pitch Message */}
         <div className="space-y-1.5">
           <label className="block text-[11px] font-mono uppercase tracking-wider text-base-content/60">
@@ -84,7 +136,6 @@ const ProposalSidebar = ({ event, onSubmit, submitted }) => {
             value={pitch}
             onChange={(e) => setPitch(e.target.value)}
             placeholder="Briefly describe what you'd like to bring to this event..."
-            required
             rows={4}
             className="textarea textarea-bordered w-full text-[13px] leading-relaxed resize-none focus:outline-none focus:border-primary"
           />
@@ -93,7 +144,7 @@ const ProposalSidebar = ({ event, onSubmit, submitted }) => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={!selectedTier || submitted}
+          disabled={!selectedTier.name || !proposedBudget || submitted}
           className="btn btn-primary btn-block btn-sm h-10 gap-2 font-medium"
         >
           {submitted ? (

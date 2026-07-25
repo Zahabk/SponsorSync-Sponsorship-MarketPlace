@@ -20,12 +20,11 @@ const EventService = {
     return res.data;
   },
   updateEvent: async (eventId, updatedDetails) => {
-    const res = await Api.patch(`events/${eventId}`, updatedDetails, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await Api.patch(`events/${eventId}`, updatedDetails);
     return res.data;
   },
   updateEventBanner: async (eventId, newBanner) => {
+
     const res = await Api.patch(`events/banner/${eventId}`, newBanner, {
       headers: { "Content-Type": "multipart/form-data" },
     });

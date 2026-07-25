@@ -34,7 +34,7 @@ const OrganizerDashboard = () => {
       0,
     );
     const totalSponsorsEngaged = [
-      ...new Set(proposals.map((p) => p.sponsorName)),
+      ...new Set(proposals.map((p) => p.sponsor?._id).filter(Boolean)),
     ].length;
     const negotiateCount = proposals.filter(
       (p) => p.status === "negotiating",
@@ -186,11 +186,13 @@ const OrganizerDashboard = () => {
                         key={p._id}
                         className="border-b border-base-300/30 hover:bg-base-300/20 transition-colors last:border-0"
                       >
-                        <td className="py-3 font-medium text-sm text-base-content max-w-[140px] truncate">
+                        <td className="py-3 font-medium text-sm text-base-content max-w-35 truncate">
                           {p.event?.title}
                         </td>
-                        <td className="py-3 text-sm text-base-content/60 max-w-[120px] truncate">
-                          {p.sponsor?.name || "—"}
+                        <td className="py-3 text-sm text-base-content/60 max-w-30 truncate">
+                          {p.sponsor
+                            ? `${p.sponsor.firstName} ${p.sponsor.lastName}`
+                            : "—"}
                         </td>
                         <td className={`py-3 text-sm ${tierConfig[p.tier]}`}>
                           {p.tier}
@@ -221,37 +223,55 @@ const OrganizerDashboard = () => {
               {/* Cards — mobile only */}
               <div className="md:hidden divide-y divide-base-300/30">
                 {recentProposals.map((p) => (
-                  <div
-                    key={p._id}
-                    className="flex items-start justify-between gap-3 px-4 py-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-base-content truncate">
+                  <div key={p._id} className="px-4 py-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-base-content leading-snug flex-1">
                         {p.event?.title}
                       </p>
-                      <p className="text-xs text-base-content/50 mt-0.5">
-                        {p.sponsor?.name || "—"}&nbsp;·&nbsp;
-                        <span className={tierConfig[p.tier]}>{p.tier}</span>
-                      </p>
-                      <div className="mt-1.5">
-                        <StatusBadge status={p.status} />
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-base-content font-mono">
-                        ${p.proposedBudget?.toLocaleString()}
-                      </p>
-                      {p.counterOffer > 0 && (
-                        <p className="text-xs text-secondary font-mono">
-                          ↔ ${p.counterOffer.toLocaleString()}
-                        </p>
-                      )}
-                      <p className="text-[10px] text-base-content/40 mt-0.5">
+                      <p className="text-[10px] text-base-content/40 shrink-0 mt-0.5 whitespace-nowrap">
                         {new Date(p.createdAt).toLocaleDateString("en-IN", {
                           month: "short",
                           day: "numeric",
                         })}
                       </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-base-content/50">
+                        {p.sponsor.firstName} {p.sponsor.lastName}
+                      </span>
+                      <span className="text-base-content/20 text-xs">·</span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full bg-base-300/50 ${tierConfig[p.tier]}`}
+                      >
+                        {p.tier}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-base-content/40 uppercase tracking-wide mb-0.5">
+                          Budget
+                        </span>
+                        <span className="text-sm font-bold text-base-content font-mono">
+                          ${p.proposedBudget?.toLocaleString()}
+                        </span>
+                      </div>
+                      {p.counterOffer > 0 && (
+                        <>
+                          <span className="text-base-content/20">→</span>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-base-content/40 uppercase tracking-wide mb-0.5">
+                              Counter
+                            </span>
+                            <span className="text-sm font-bold text-secondary font-mono">
+                              ${p.counterOffer.toLocaleString()}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div>
+                      <StatusBadge status={p.status} />
                     </div>
                   </div>
                 ))}

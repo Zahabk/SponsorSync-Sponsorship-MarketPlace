@@ -9,7 +9,7 @@ import { trusted } from "mongoose";
 const submitProposal = asyncHandler(async (req, res) => {
   const sponsorId = req.user._id;
   const { eventId } = req.params;
-  const { proposedBudget, tier, message } = req.body;
+  const { tier, proposedBudget, message } = req.body;
 
   if (!proposedBudget || !tier) {
     throw new ApiError(400, "Proposed budget, and tier are required");
@@ -46,7 +46,9 @@ const submitProposal = asyncHandler(async (req, res) => {
 });
 
 const getMyProposal = asyncHandler(async (req, res) => {
-  const allProposals = await Proposal.find({ sponsor: req.user._id });
+  const allProposals = await Proposal.find({ sponsor: req.user._id })
+    .populate("event", "title eventDate eventType location")
+    .sort({ createdAt: -1 });
 
   if (allProposals.length === 0) {
     throw new ApiError(404, "No proposals found");

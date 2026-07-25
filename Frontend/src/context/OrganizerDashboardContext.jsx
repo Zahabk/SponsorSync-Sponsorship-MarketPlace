@@ -25,6 +25,7 @@ export const OrganizerDashboardProvider = ({ children }) => {
     }
   };
 
+  
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -36,6 +37,7 @@ export const OrganizerDashboardProvider = ({ children }) => {
         setMyEvents,
         proposals,
         setProposals,
+        refreshEvents:fetchDashboardData,
         loading
       }}
     >

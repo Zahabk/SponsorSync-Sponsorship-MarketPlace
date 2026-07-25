@@ -1,7 +1,5 @@
-import React, { useState } from "react";
-import { IoCloudUploadOutline } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import EventService from "../services/event";
 import TierReferenceCard from "../components/CreateEvent/TierReferenceCard";
 import TierFormCard from "../components/CreateEvent/TierFormCard";
@@ -10,6 +8,8 @@ import {
   TextareaField,
   SelectField,
 } from "../components/CreateEvent/FormField";
+import { toast } from "react-toastify";
+import { useOrganizerDashboard } from "../context/OrganizerDashboardContext";
 
 const cardCls =
   "bg-base-300/80 rounded-2xl border border-base-300/30 shadow-md p-6";
@@ -23,61 +23,72 @@ const EVENT_TYPES = [
   "other",
 ];
 
-const DEFAULT_TIER_INFO = [
-  {
-    name: "Gold",
-    price: 100,
-    benefits: [
-      "Premium logo placement on all event materials",
-      "Dedicated booth/stall space",
-      "Stage mention/announcement",
-      "VIP passes for team",
-    ],
-  },
-  {
-    name: "Silver",
-    price: 50,
-    benefits: [
-      "Logo placement on banners and digital screens",
-      "Standard booth/stall space",
-      "Event passes for team",
-    ],
-  },
-  {
-    name: "Bronze",
-    price: 25,
-    benefits: [
-      "Logo on event website and social media",
-      "Limited passes for team",
-    ],
-  },
+const INITIAL_TIERS = [
+  { name: "Gold", amount: 0, perks: "" },
+  { name: "Silver", amount: 0, perks: "" },
+  { name: "Bronze", amount: 0, perks: "" },
 ];
 
-const INITIAL_TIERS = DEFAULT_TIER_INFO.map(({ name, price, benefits }) => ({
-  name,
-  amount: price,
-  perks: benefits.join(", "),
-}));
-
-
-
-const INITIAL_FORM = {
-  title: "",
-  description: "",
-  eventType: "other",
-  eventDate: "",
-  location: "",
-  audienceSize: "",
-  proposalDeadline: "",
-};
-
-const CreateEvent = () => {
+const EditEvent = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(INITIAL_FORM);
+  const { id } = useParams();
+  const {refreshEvents} = useOrganizerDashboard()
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    eventType: "other",
+    eventDate: "",
+    location: "",
+    audienceSize: "",
+    proposalDeadline: "",
+  });
   const [tiers, setTiers] = useState(INITIAL_TIERS);
-  const [bannerFile, setBannerFile] = useState(null);
-  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await EventService.getEventDetails(id);
+        const event = res.data;
+
+        setFormData({
+          title: event.title ?? "",
+          description: event.description ?? "",
+          eventType: event.eventType ?? "other",
+          eventDate: new Date(event.eventDate).toISOString().split("T")[0],
+          location: event.location ?? "",
+          audienceSize: event.audienceSize ?? "",
+          proposalDeadline: new Date(event.proposalDeadline)
+            .toISOString()
+            .split("T")[0]
+        });
+
+        if (event.tiers?.length) {
+          setTiers(
+            INITIAL_TIERS.map((init) => {
+              const match = event.tiers.find((t) => t.name === init.name);
+              return match
+                ? {
+                    name: match.name,
+                    amount: match.price ?? 0,
+                    perks: (match.benefits ?? []).join(", "),
+                  }
+                : init;
+            }),
+          );
+        }
+      } catch (err) {
+        toast.error("Failed to load event details");
+        console.error(err);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id]);
 
   const onFieldChange = (e) => {
     const { name, value } = e.target;
@@ -89,15 +100,22 @@ const CreateEvent = () => {
       prev.map((t, i) => (i === index ? { ...t, [field]: value } : t)),
     );
 
-  const onBannerChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setBannerFile(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const eventDate = new Date(formData.eventDate);
+    const proposalDeadline = new Date(formData.proposalDeadline);
+    const today = new Date();
+
+    if (eventDate < today) {
+      toast.error("Event date cannot be in the past");
+      return;
+    }
+    if (proposalDeadline >= eventDate) {
+      toast.error("Proposal deadline must be before the event date");
+      return;
+    }
+
     setLoading(true);
     try {
       const filledTiers = tiers.filter(
@@ -113,49 +131,46 @@ const CreateEvent = () => {
           .filter(Boolean),
       }));
 
-      const data = new FormData();
-      Object.entries(formData).forEach(([k, v]) => data.append(k, v));
-      // Send empty array if no tiers filled → backend default will apply
-      data.append("tiers", JSON.stringify(tiersPayload));
-      if (bannerFile) data.append("banner", bannerFile);
+      const updateDetails = {
+        ...formData,
+        tiers: tiersPayload,
+      };
 
-      if (formData.proposalDeadline >= formData.eventDate) {
-        toast.error("Proposal deadline should be before event date");
-        return;
-      }
-      if (formData.eventDate < Date.now()) {
-        toast.error("Event Date not be before today's date");
-        return;
-      }
-
-      await EventService.createEvent(data);
-      toast.success("Event created successfully!");
-      navigate("/events");
+      await EventService.updateEvent(id, updateDetails);
+      toast.success("Event updated successfully!");
+      refreshEvents()
+      navigate("/dashboard/events");
     } catch (err) {
+      toast.error("Failed to update event");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) {
+    return (
+      <div className="min-h-screen bg-base-100 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-base-100 text-base-content py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-extrabold tracking-tight mb-6">
-          Create new event
+          Update Event
         </h1>
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            {/*  Basic Info + Default Tier Reference */}
             <div className="flex flex-col gap-6">
               <div className={`${cardCls} flex flex-col gap-5`}>
                 <p className="text-xs font-semibold text-primary tracking-widest uppercase">
                   Basic info
                 </p>
-
                 <InputField
-                  required
                   label="Event title"
                   name="title"
                   type="text"
@@ -163,9 +178,7 @@ const CreateEvent = () => {
                   onChange={onFieldChange}
                   placeholder="e.g. Annual Tech Summit 2026"
                 />
-
                 <TextareaField
-                  required
                   label="Description"
                   name="description"
                   rows={4}
@@ -173,7 +186,6 @@ const CreateEvent = () => {
                   onChange={onFieldChange}
                   placeholder="Provide a comprehensive event description..."
                 />
-
                 <div className="grid grid-cols-2 gap-4">
                   <SelectField
                     label="Event type"
@@ -183,7 +195,6 @@ const CreateEvent = () => {
                     onChange={onFieldChange}
                   />
                   <InputField
-                    required
                     label="Audience size"
                     name="audienceSize"
                     type="number"
@@ -192,9 +203,7 @@ const CreateEvent = () => {
                     placeholder="e.g. 2000"
                   />
                 </div>
-
                 <InputField
-                  required
                   label="Location"
                   name="location"
                   type="text"
@@ -202,12 +211,9 @@ const CreateEvent = () => {
                   onChange={onFieldChange}
                   placeholder="e.g. Mumbai, India"
                 />
-
                 <div className="divider my-0" />
-
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
-                    required
                     label="Event date"
                     name="eventDate"
                     type="date"
@@ -215,7 +221,6 @@ const CreateEvent = () => {
                     onChange={onFieldChange}
                   />
                   <InputField
-                    required
                     label="Proposal deadline"
                     name="proposalDeadline"
                     type="date"
@@ -224,67 +229,9 @@ const CreateEvent = () => {
                   />
                 </div>
               </div>
-
-              {/* Default Tier Reference */}
-              <div className={`${cardCls} flex flex-col gap-4`}>
-                <p className="text-xs font-semibold text-primary tracking-widest uppercase">
-                  Default tier reference
-                </p>
-                <div className="flex flex-col gap-3">
-                  {DEFAULT_TIER_INFO.map((tier) => (
-                    <TierReferenceCard key={tier.name} tier={tier} />
-                  ))}
-                </div>
-              </div>
             </div>
 
-            {/*  Banner + Sponsorship Tiers */}
             <div className="flex flex-col gap-6">
-              {/* Banner */}
-              <div className={`${cardCls} flex flex-col gap-4`}>
-                <p className="text-xs font-semibold text-primary tracking-widest uppercase">
-                  Event banner
-                </p>
-                {preview ? (
-                  <div className="relative rounded-xl overflow-hidden border border-base-300">
-                    <img
-                      src={preview}
-                      alt="Banner preview"
-                      className="w-full h-40 object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPreview(null);
-                        setBannerFile(null);
-                      }}
-                      className="absolute top-2 right-2 btn btn-xs btn-error btn-circle"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <label
-                    className="flex flex-col items-center justify-center gap-2 min-h-36
-                    border-2 border-dashed border-base-300 rounded-xl bg-base-100
-                    cursor-pointer hover:border-primary transition-colors p-6"
-                  >
-                    <IoCloudUploadOutline className="text-4xl text-base-content/50" />
-                    <span className="text-primary font-semibold text-sm text-center">
-                      Click to upload
-                    </span>
-                    <input
-                      type="file"
-                      name="banner"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={onBannerChange}
-                    />
-                  </label>
-                )}
-              </div>
-
-              {/* Sponsorship Tiers */}
               <div className={`${cardCls} flex flex-col gap-4`}>
                 <p className="text-xs font-semibold text-primary tracking-widest uppercase">
                   Sponsorship tiers
@@ -306,11 +253,9 @@ const CreateEvent = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 py-3 bg-primary text-primary-content font-bold
-              rounded-xl shadow-lg transition-all hover:opacity-95 disabled:opacity-50
-              flex items-center justify-center gap-2"
+            className="w-full mt-6 py-3 bg-primary text-primary-content font-bold rounded-xl shadow-lg transition-all hover:opacity-95 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading ? "Publishing event..." : "Publish event"}
+            {loading ? "Updating event..." : "Update event"}
           </button>
         </form>
       </div>
@@ -318,4 +263,4 @@ const CreateEvent = () => {
   );
 };
 
-export default CreateEvent;
+export default EditEvent;

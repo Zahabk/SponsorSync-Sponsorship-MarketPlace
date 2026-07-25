@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Event } from "../models/event.model.js";
+import { Proposal } from "../models/proposal.model.js";
 import {
   deleteFromCloudinary,
   uploadOnCloudinary,
@@ -178,6 +179,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized to delete this event");
   }
 
+  await Proposal.deleteMany({event:eventId})
   await event.deleteOne();
 
   return res

@@ -15,7 +15,6 @@ import {
 const router = Router();
 
 //organizer only
-
 router
   .route("/")
   .get(verifyJWT, authorizeRole("organizer"), getOrganizerProposals);

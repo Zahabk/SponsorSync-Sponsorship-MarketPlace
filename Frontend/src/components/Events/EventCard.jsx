@@ -5,6 +5,7 @@ import {
   IoLocationOutline,
   IoPeopleOutline,
 } from "react-icons/io5";
+import { MdOutlineEvent } from "react-icons/md";
 import { FcAlarmClock } from "react-icons/fc";
 
 const BADGE_STYLE = {
@@ -61,13 +62,7 @@ const EventCard = ({ event }) => {
             }`}
           />
         ) : (
-          <img
-            src="https://placehold.co/1200x400?text=Event+Banner"
-            alt={event.title}
-            className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
-              hovered ? "scale-105 filter brightness-95" : "scale-100"
-            }`}
-          />
+          <MdOutlineEvent size={40} className="text-base-content/60" />
         )}
         <div className="absolute inset-0 bg-linear-to-t from-base-200 via-transparent to-black/20" />
 

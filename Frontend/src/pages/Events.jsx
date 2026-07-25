@@ -23,7 +23,9 @@ const Events = () => {
       }
     };
     fetchEvents();
-  },[]);
+    const interval = setInterval(fetchEvents, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-base-100 text-base-content">
