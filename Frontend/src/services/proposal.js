@@ -38,7 +38,7 @@ const ProposalService = {
   },
   updateCounter: async (proposalId, counterDetails) => {
     const res = await Api.patch(
-      `/proposals//update-counter/${proposalId}`,
+      `/proposals/update-counter/${proposalId}`,
       counterDetails,
     );
     return res.data;

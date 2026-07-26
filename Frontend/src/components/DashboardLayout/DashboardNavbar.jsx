@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { MdOutlineMenu, MdOutlineAdd } from "react-icons/md";
+import { MdOutlineMenu, MdOutlineCreate } from "react-icons/md";
+import { CgProfile } from "react-icons/cg";
 
 const DashboardNavbar = ({ user, onMenuClick }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -27,16 +28,6 @@ const DashboardNavbar = ({ user, onMenuClick }) => {
         <MdOutlineMenu size={22} />
       </button>
       <div className="flex items-center gap-4 sm:gap-6 ml-auto">
-        {user?.role === "organizer" && (
-          <Link
-            to="/create-event"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 text-xs font-semibold transition-colors"
-          >
-            <MdOutlineAdd size={15} />
-            Create Event
-          </Link>
-        )}
-
         {/* Avatar + dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -61,10 +52,16 @@ const DashboardNavbar = ({ user, onMenuClick }) => {
                   <p className="font-semibold text-sm truncate text-base-content">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-base-content/50 truncate">{user?.email}</p>
-                  <p className={`text-xs first-letter:uppercase mt-0.5 ${
-                    user?.role === "organizer" ? "text-primary" : "text-secondary"
-                  }`}>
+                  <p className="text-xs text-base-content/50 truncate">
+                    {user?.email}
+                  </p>
+                  <p
+                    className={`text-xs first-letter:uppercase mt-0.5 ${
+                      user?.role === "organizer"
+                        ? "text-primary"
+                        : "text-secondary"
+                    }`}
+                  >
                     {user?.role}
                   </p>
                 </div>
@@ -72,22 +69,19 @@ const DashboardNavbar = ({ user, onMenuClick }) => {
               <Link
                 to="/profile"
                 onClick={() => setDropdownOpen(false)}
-                className={`flex items-center px-4 py-2 text-sm text-base-content/80 transition ${
-                  user?.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"
-                }`}
+                className="flex items-center gap-1 px-4 py-2 text-sm text-base-content/80 transition  hover:bg-primary/40"
               >
+                <CgProfile size={15} />
                 My Profile
               </Link>
-              {user?.role === "organizer" && (
-                <Link
-                  to="/create-event"
-                  onClick={() => setDropdownOpen(false)}
-                  className="sm:hidden flex items-center gap-2 px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 transition"
-                >
-                  <MdOutlineAdd size={15} />
-                  Create Event
-                </Link>
-              )}
+              <Link
+                to="/create-event"
+                onClick={() => setDropdownOpen(false)}
+                className=" flex items-center gap-1 px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 transition"
+              >
+                <MdOutlineCreate size={15} />
+                Create Event
+              </Link>
             </div>
           )}
         </div>

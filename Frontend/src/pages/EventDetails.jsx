@@ -195,9 +195,12 @@ const EventDetails = () => {
         <aside className="lg:sticky lg:top-6 w-full">
           {(() => {
             const now = new Date();
-            const isDeadlinePassed =
-              event.proposalDeadline && new Date(event.proposalDeadline) < now;
-
+            let isDeadlinePassed = false;
+            if (event.proposalDeadline) {
+              const deadline = new Date(event.proposalDeadline);
+              deadline.setUTCHours(23, 59, 59, 999);
+              isDeadlinePassed = deadline < now;
+            }
             if (event.status === "closed") {
               return (
                 <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-red-500/30 bg-red-500/10 text-center">

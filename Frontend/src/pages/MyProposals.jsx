@@ -1,57 +1,103 @@
-import React, { useEffect, useState } from "react";
-import { MdInbox, MdOutlineCalendarToday } from "react-icons/md";
-import { FiMessageSquare } from "react-icons/fi";
-import StatusBadge from "../components/OrganizerDashboard/StatusBadge";
+import React, { useCallback, useEffect, useState } from "react";
+import { MdInbox } from "react-icons/md";
 import ProposalService from "../services/proposal";
 import { toast } from "react-toastify";
+import { FiRefreshCw } from "react-icons/fi";
+import MyProposalCard from "../components/MyProposalCard";
 
-const tierConfig = {
-  Gold: "text-amber-400 font-semibold",
-  Silver: "text-slate-300 font-semibold",
-  Bronze: "text-orange-500 font-semibold",
-};
+const FILTERS = [
+  { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
+  { key: "negotiating", label: "Negotiating" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+];
 
-const tierBg = {
-  Gold: "bg-amber-400/10",
-  Silver: "bg-slate-300/10",
-  Bronze: "bg-orange-500/10",
+const filterAccent = {
+  all: "border-primary text-primary bg-primary/10",
+  approved: "border-success text-success bg-success/10",
+  rejected: "border-error text-error bg-error/10",
+  negotiating: "border-secondary text-secondary bg-secondary/10",
+  pending: "border-warning text-warning bg-warning/10",
 };
 
 const MyProposals = () => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
 
-  useEffect(() => {
-    const fetchProposals = async () => {
-      try {
-        const res = await ProposalService.getMyProposal();
-        setProposals(res.data || []);
-      } catch (err) {
-        const status = err?.response?.status;
-        if (status === 404) {
-          setProposals([]);
-        } else {
-          toast.error("Failed to load proposals. Please try again.");
-        }
-      } finally {
-        setLoading(false);
+  const fetchProposals = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    try {
+      const res = await ProposalService.getMyProposal();
+      setProposals(res.data || []);
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        setProposals([]);
+      } else {
+        toast.error("Failed to load proposals. Please try again.");
       }
-    };
-    fetchProposals();
+    } finally {
+      if (showLoader) setLoading(false);
+    }
   }, []);
 
-  const filters = [
-    { key: "all", label: "All" },
-    { key: "pending", label: "Pending" },
-    { key: "negotiating", label: "Negotiating" },
-    { key: "approved", label: "Approved" },
-    { key: "rejected", label: "Rejected" },
-  ];
+  useEffect(() => {
+    fetchProposals();
 
-  const filtered = activeFilter === "all"
-    ? proposals
-    : proposals.filter((p) => p.status === activeFilter);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchProposals(false);
+      }
+    };
+    const onFocus = () => fetchProposals(false);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [fetchProposals]);
+
+  const handleManualRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await fetchProposals(false);
+    setRefreshing(false);
+  };
+
+  const handleCounterResponse = async (proposalId, action) => {
+    try {
+      await ProposalService.respondToCounter(proposalId, action);
+      await fetchProposals(false);
+      toast.success(
+        action === "accept"
+          ? "Counter offer accepted."
+          : "Counter offer declined.",
+      );
+    } catch (err) {
+      toast.error("Failed to update response. Please try again.");
+    }
+  };
+
+  const handleUpdateProposal = async (proposalId, updateDetails) => {
+    try {
+      await ProposalService.updateProposal(proposalId, updateDetails);
+      await fetchProposals(false);
+      toast.success("Proposal updated successfully!!");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update proposal.");
+      throw err;
+    }
+  };
+
+  const filtered =
+    activeFilter === "all"
+      ? proposals
+      : proposals.filter((p) => p.status === activeFilter);
 
   if (loading) {
     return (
@@ -62,229 +108,100 @@ const MyProposals = () => {
   }
 
   return (
-  <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-    {/* Header */}
-    <div>
-      <h1 className="text-xl sm:text-2xl font-bold text-base-content">
-        My Proposals
-      </h1>
-      <p className="text-sm text-base-content/50 mt-0.5">
-        Track the status of your sponsorship proposals.
-      </p>
-    </div>
+    <div className="max-w-2xl mx-auto px-4 py-10 space-y-7">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold text-base-content tracking-tight">
+            My Proposals
+          </h1>
+          <p className="text-sm text-base-content/50">
+            Track and respond to your sponsorship proposals.
+          </p>
+        </div>
 
-    {/* Filter bar */}
-    {proposals.length > 0 && (
-      <div className="flex items-center gap-2 flex-wrap">
-        {filters.map(({ key, label }) => {
-          const count =
-            key === "all"
-              ? proposals.length
-              : proposals.filter((p) => p.status === key).length;
-          const isActive = activeFilter === key;
-          const accentClass =
-            key === "approved"
-              ? "border-success text-success bg-success/10"
-              : key === "rejected"
-                ? "border-error text-error bg-error/10"
-                : key === "negotiating"
-                  ? "border-secondary text-secondary bg-secondary/10"
-                  : key === "pending"
-                    ? "border-warning text-warning bg-warning/10"
-                    : "border-primary text-primary bg-primary/10";
+        <button
+          onClick={handleManualRefresh}
+          disabled={refreshing}
+          title="Refresh"
+          className="btn btn-ghost btn-sm h-8 min-h-0 w-8 p-0 text-base-content/50 hover:text-base-content shrink-0"
+        >
+          <FiRefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+        </button>
+      </div>
 
-          return (
-            <button
-              key={key}
-              onClick={() => setActiveFilter(key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                isActive
-                  ? accentClass
-                  : "border-base-300/50 text-base-content/40 hover:border-base-300 hover:text-base-content/60 bg-transparent"
-              }`}
-            >
-              {label}
-              <span
-                className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full ${
+      {/* Filter bar */}
+      {proposals.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {FILTERS.map(({ key, label }) => {
+            const count =
+              key === "all"
+                ? proposals.length
+                : proposals.filter((p) => p.status === key).length;
+            const isActive = activeFilter === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveFilter(key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-base-100/40"
-                    : "bg-base-300/40 text-base-content/30"
+                    ? filterAccent[key]
+                    : "border-base-300/40 text-base-content/60 hover:text-base-content/60 hover:border-base-300/70"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    )}
-
-    {/* No proposals at all */}
-    {proposals.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-20 text-center text-base-content/40">
-        <MdInbox size={40} className="mb-3 opacity-50" />
-        <p className="text-sm font-medium">No proposals yet</p>
-        <p className="text-xs max-w-xs mt-1">
-          Browse events and submit a sponsorship proposal to get started.
-        </p>
-      </div>
-    ) : filtered.length === 0 ? (
-      /* Filter has no results */
-      <div className="flex flex-col items-center justify-center py-16 text-center text-base-content/40">
-        <MdInbox size={32} className="mb-2 opacity-40" />
-        <p className="text-sm font-medium">No {activeFilter} proposals</p>
-      </div>
-    ) : (
-      <div className="space-y-3">
-        {filtered.map((p) => (
-          <div
-            key={p._id}
-            className="bg-base-200 rounded-xl border border-base-300/50 overflow-hidden hover:border-base-300 transition-colors"
-          >
-            
-            <div
-              className={`h-0.5 w-full ${
-                p.status === "approved"
-                  ? "bg-success"
-                  : p.status === "rejected"
-                    ? "bg-error"
-                    : p.status === "negotiating"
-                      ? "bg-secondary"
-                      : "bg-warning"
-              }`}
-            />
-
-            <div className="p-4 sm:p-5 space-y-3.5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-base-content leading-snug truncate">
-                    {p.event?.title || "—"}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <MdOutlineCalendarToday
-                      size={10}
-                      className="text-base-content/30 shrink-0"
-                    />
-                    <span className="text-xs text-base-content/40">
-                      {p.event?.eventDate
-                        ? new Date(p.event.eventDate).toLocaleDateString(
-                            "en-IN",
-                            { day: "numeric", month: "short", year: "numeric" },
-                          )
-                        : "—"}
-                    </span>
-                    {p.event?.eventType && (
-                      <>
-                        <span className="text-base-content/20 text-xs">·</span>
-                        <span className="text-xs text-base-content/40 capitalize">
-                          {p.event.eventType}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <StatusBadge status={p.status} />
-              </div>
-
-              
-              <div className="border-t border-base-300/30" />
-
-              {/* Tier + Budget + Counter + Date */}
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                {/* Tier pill */}
+                {label}
                 <span
-                  className={`text-xs px-2.5 py-1 rounded-full ${tierConfig[p.tier]} ${tierBg[p.tier]}`}
+                  className={`font-sans text-[10px] px-1 py-0.5 rounded min-w-4 text-center ${
+                    isActive ? "bg-black/10" : "text-base-content/40"
+                  }`}
                 >
-                  {p.tier}
+                  {count}
                 </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-                {/* Budget */}
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-base-content/30">
-                    Budget
-                  </span>
-                  <span className="font-mono text-sm font-bold text-base-content">
-                    ${p.proposedBudget?.toLocaleString()}
-                  </span>
-                </div>
-
-                {/* Counter offer */}
-                {p.counterOffer > 0 && (
-                  <>
-                    <span className="text-base-content/20 text-xs">→</span>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-base-content/30">
-                        Counter
-                      </span>
-                      <span className="font-mono text-sm font-bold text-secondary">
-                        ${p.counterOffer.toLocaleString()}
-                      </span>
-                    </div>
-                  </>
-                )}
-
-                {/* Submitted date */}
-                <div className="ml-auto flex flex-col items-end gap-0.5">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-base-content/30">
-                    Submitted
-                  </span>
-                  <span className="font-mono text-xs text-base-content/40">
-                    {new Date(p.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Organizer note */}
-              {p.counterNote && (
-                <div className="flex items-start gap-2.5 rounded-lg bg-base-300/30 border border-base-300/40 px-3 py-2.5">
-                  <FiMessageSquare
-                    size={12}
-                    className="text-secondary/60 mt-0.5 shrink-0"
-                  />
-                  <div className="space-y-0.5">
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-base-content/30">
-                      Organizer note
-                    </p>
-                    <p className="text-xs text-base-content/60 leading-relaxed">
-                      {p.counterNote}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Accept / Decline counter */}
-              {p.status === "negotiating" && p.counterStatus === "pending" && (
-                <div className="flex items-center justify-between gap-3 pt-3 border-t border-base-300/30">
-                  <p className="text-xs text-base-content/40">
-                    Respond to the organizer's counter offer
-                  </p>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => handleCounterResponse(p._id, "accept")}
-                      className="btn btn-success btn-sm btn-outline h-8 min-h-0 text-xs font-medium px-3"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleCounterResponse(p._id, "reject")}
-                      className="btn btn-error btn-sm btn-outline h-8 min-h-0 text-xs font-medium px-3"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+      {proposals.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-base-200 border border-base-300/40 flex items-center justify-center mb-4">
+            <MdInbox size={22} className="text-base-content/30" />
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
+          <p className="text-sm font-semibold text-base-content/60">
+            No proposals yet
+          </p>
+          <p className="text-xs text-base-content/50 mt-1 max-w-55 leading-relaxed">
+            Browse events and submit a sponsorship proposal to get started.
+          </p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <MdInbox size={28} className="text-base-content/30 mb-3" />
+          <p className="text-sm text-base-content/40">
+            No {activeFilter} proposals
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((p) => {
+            const tierPrice = p.event?.tiers?.find(
+              (t) => t.name === p.tier,
+            )?.price;
+
+            return (
+              <MyProposalCard
+                key={p._id}
+                proposal={p}
+                tierPrice={tierPrice}
+                handleCounterResponse={handleCounterResponse}
+                handleUpdateProposal={handleUpdateProposal}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MyProposals;

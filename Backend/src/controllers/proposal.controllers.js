@@ -47,7 +47,7 @@ const submitProposal = asyncHandler(async (req, res) => {
 
 const getMyProposal = asyncHandler(async (req, res) => {
   const allProposals = await Proposal.find({ sponsor: req.user._id })
-    .populate("event", "title eventDate eventType location")
+    .populate("event", "title eventDate eventType location tiers")
     .sort({ createdAt: -1 });
 
   if (allProposals.length === 0) {
@@ -72,7 +72,7 @@ const updateProposal = asyncHandler(async (req, res) => {
   if (!proposal.sponsor.equals(req.user?._id)) {
     throw new ApiError(403, "Not authorized to update this proposal");
   }
-  if (["negotiating", "accepted", "rejected"].includes(proposal.status)) {
+  if (["negotiating", "approved", "rejected"].includes(proposal.status)) {
     throw new ApiError(400, "Cannot update proposal");
   }
 
@@ -146,7 +146,7 @@ const getOrganizerProposals = asyncHandler(async (req, res) => {
     event: { $in: eventIds },
   })
     .populate("sponsor", "firstName lastName email")
-    .populate("event", "title eventDate eventType")
+    .populate("event", "title eventDate eventType tiers")
     .sort({ createdAt: -1 });
 
   return res

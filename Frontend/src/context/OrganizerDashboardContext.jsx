@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import EventService from "../services/event";
 import ProposalService from "../services/proposal";
 
@@ -9,8 +9,8 @@ export const OrganizerDashboardProvider = ({ children }) => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     try {
       const [eventsRes, proposalsRes] = await Promise.all([
         EventService.getOrganizerEvents(),
@@ -21,14 +21,28 @@ export const OrganizerDashboardProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch dashboard context data", error);
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
-  };
+  }, []);
 
-  
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchDashboardData(false);
+      }
+    };
+    const onFocus = () => fetchDashboardData(false);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [fetchDashboardData]);
 
   return (
     <OrganizerDashboardContext.Provider
@@ -37,8 +51,8 @@ export const OrganizerDashboardProvider = ({ children }) => {
         setMyEvents,
         proposals,
         setProposals,
-        refreshEvents:fetchDashboardData,
-        loading
+        refreshEvents: fetchDashboardData,
+        loading,
       }}
     >
       {children}

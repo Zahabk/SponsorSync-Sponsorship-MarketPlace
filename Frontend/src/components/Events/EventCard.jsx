@@ -34,7 +34,10 @@ const EventCard = ({ event }) => {
     if (!deadlineStr) return null;
     const today = new Date();
     const deadline = new Date(deadlineStr);
-    const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+    deadline.setUTCHours(23, 59, 59, 999);
+
+    const diffMs = deadline - today;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
 

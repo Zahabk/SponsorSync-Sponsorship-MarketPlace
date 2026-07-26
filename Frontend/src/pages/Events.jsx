@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import EventCard from "../components/Events/EventCard";
 import Pagination from "../components/Events/Pagination";
 import EventService from "../services/event";
 
 const Events = () => {
   const [allEvents, setAllEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -13,20 +14,44 @@ const Events = () => {
     currentPage * itemsPerPage,
   );
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await EventService.getAllEvents();
-        setAllEvents(res.data || []);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      }
-    };
-    fetchEvents();
-    const interval = setInterval(fetchEvents, 30000);
-    return () => clearInterval(interval);
+  const fetchEvents = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    try {
+      const res = await EventService.getAllEvents();
+      setAllEvents(res.data || []);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      if (showLoader) setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchEvents();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchEvents(false);
+      }
+    };
+    const onFocus = () => fetchEvents(false);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [fetchEvents]);
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary" />
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col min-h-screen bg-base-100 text-base-content">
       {/* ── Main Content Container ── */}

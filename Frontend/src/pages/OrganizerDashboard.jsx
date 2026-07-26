@@ -9,7 +9,7 @@ import {
 } from "react-icons/md";
 import StatCards from "../components/OrganizerDashboard/StatCards";
 import SectionHeader from "../components/OrganizerDashboard/SectionHeader";
-import StatusBadge from "../components/OrganizerDashboard/StatusBadge";
+import StatusBadge from "../components/StatusBadge";
 import { useOrganizerDashboard } from "../context/OrganizerDashboardContext";
 
 const tierConfig = {
