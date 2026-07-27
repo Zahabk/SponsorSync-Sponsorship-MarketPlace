@@ -114,7 +114,7 @@ const Navbar = () => {
                     <img
                       src={user.profileImage}
                       alt={user?.firstName}
-                      className={`w-10 h-10 rounded-full object-cover border-3 border-base-300  transition ${user.role === "organizer" ? "hover:border-primary/40" : "hover:border-secondary/80"}`}
+                      className={`w-10 h-10 rounded-full object-cover border-3 border-base-300  transition ${user?.role === "organizer" ? "hover:border-primary/40" : "hover:border-secondary/80"}`}
                     />
                   ) : (
                     <img
@@ -138,7 +138,7 @@ const Navbar = () => {
                         <p
                           className={`text-sm ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} first-letter:uppercase`}
                         >
-                          {user.role}
+                          {user?.role}
                         </p>
                       </div>
                     )}
@@ -146,17 +146,17 @@ const Navbar = () => {
                     <Link
                       to="/profile"
                       onClick={() => setDropdownOpen(false)}
-                      className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                      className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user?.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                     >
                       <FaRegUserCircle className="mr-1" />
                       My Profile
                     </Link>
-                    {user.role === "organizer" && (
+                    {user?.role === "organizer" && (
                       <>
                         <Link
                           to="/dashboard"
                           onClick={() => setDropdownOpen(false)}
-                          className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                          className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-primary/40 hover:text-base-content transition ${user?.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                         >
                           <MdOutlineDashboard className="mr-1" />
                           Dashboard
@@ -172,7 +172,7 @@ const Navbar = () => {
                         </Link>
                       </>
                     )}
-                    {user.role === "sponsor" && (
+                    {user?.role === "sponsor" && (
                       <Link
                         to="/my-proposals"
                         onClick={() => setDropdownOpen(false)}
@@ -231,7 +231,7 @@ const Navbar = () => {
                   <img
                     src={user.profileImage}
                     alt={user?.firstName}
-                    className={`w-9 h-9 rounded-full object-cover border-3 border-base-300  transition ${user.role === "organizer" ? "hover:border-primary/40" : "hover:border-secondary/80"}`}
+                    className={`w-9 h-9 rounded-full object-cover border-3 border-base-300  transition ${user?.role === "organizer" ? "hover:border-primary/40" : "hover:border-secondary/80"}`}
                   />
                 ) : (
                   <img
@@ -257,14 +257,14 @@ const Navbar = () => {
                   <p
                     className={`text-sm ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"} first-letter:uppercase`}
                   >
-                    {user.role}
+                    {user?.role}
                   </p>
                 </div>
               )}
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:text-base-content transition ${user?.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
               >
                 <FaRegUserCircle className="mr-1" />
                 My Profile
@@ -274,7 +274,7 @@ const Navbar = () => {
                   <Link
                     to="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:text-base-content transition ${user.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
+                    className={`flex items-center px-4 py-2 text-sm text-base-content/80 hover:text-base-content transition ${user?.role === "organizer" ? "hover:bg-primary/40" : "hover:bg-secondary/40"}`}
                   >
                     <MdOutlineDashboard className="mr-1" />
                     Dashboard

@@ -2,12 +2,15 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
+import { Event } from "../models/event.model.js";
+import { Proposal } from "../models/proposal.model.js";
 import {
   deleteFromCloudinary,
   uploadOnCloudinary,
 } from "../utils/cloudinary.js";
 import { options } from "../constants.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import { startSession } from "mongoose";
 
 //generate token
 const generateToken = async (userId) => {
@@ -92,11 +95,11 @@ const registerUser = asyncHandler(async (req, res) => {
     console.error("Failed to send welcome email:", err);
   }
 
-  const accessToken= await generateToken(user._id)
+  const accessToken = await generateToken(user._id);
 
   return res
     .status(201)
-    .cookie("accessToken",accessToken,options)
+    .cookie("accessToken", accessToken, options)
     .json(new ApiResponse(201, "User registered successfully", createdUser));
 });
 
@@ -186,8 +189,8 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     { returnDocument: "after" },
   ).select("-password");
 
-  if(!updatedUser){
-    throw new ApiError(500,"Updation Failed!!!")
+  if (!updatedUser) {
+    throw new ApiError(500, "Updation Failed!!!");
   }
 
   return res
@@ -245,14 +248,38 @@ const changeProfileImage = asyncHandler(async (req, res) => {
 
 //delete user account
 const deleteUserAccount = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndDelete(req.user?._id);
+  const user = await User.findById(req.user?._id);
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
+  const session = await startSession();
+  try {
+    await session.withTransaction(async () => {
+      if (user.role === "organizer") {
+        const orgEvents = await Event.find({ organizer: req.user._id })
+          .select("_id")
+          .session(session);
+        const eventIds = orgEvents.map((e) => e._id);
+        await Proposal.deleteMany({ event: { $in: eventIds } }).session(
+          session,
+        );
+        await Event.deleteMany({ organizer: req.user._id }).session(session);
+      }
+
+      if (user.role === "sponsor") {
+        await Proposal.deleteMany({ sponsor: req.user._id }).session(session);
+      }
+
+      await user.deleteOne({ session });
+    });
+  } finally {
+    session.endSession();
+  }
 
   return res
     .status(200)
+    .clearCookie("accessToken", options)
     .json(new ApiResponse(200, "User deleted Successfully", {}));
 });
 

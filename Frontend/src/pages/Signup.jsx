@@ -6,10 +6,10 @@ import AuthService from "../services/auth.js";
 import { toast } from "react-toastify";
 
 const Signup = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    username:"",
+    username: "",
     firstName: "",
     lastName: "",
     company: "",
@@ -41,7 +41,11 @@ const Signup = () => {
       for (const key in formData) {
         if (formData[key]) data.append(key, formData[key]);
       }
-      console.log(formData);
+      if (formData.password.length < 6 || formData.password.length > 11) {
+        toast.error("Password must be 6 to 11 characters long");
+        setFormData({ ...formData, password: "" });
+        return;
+      }
 
       if (profileImage) data.append("profileImage", profileImage);
 
@@ -258,6 +262,8 @@ const Signup = () => {
               value={formData.password}
               onChange={handleInputChange}
               type="password"
+              min={6}
+              max={11}
               placeholder="••••••••"
               className="input input-bordered w-full bg-base-300/50 text-sm focus:border-primary focus:outline-none"
               required

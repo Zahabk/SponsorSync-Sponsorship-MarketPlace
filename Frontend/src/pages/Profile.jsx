@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import AuthService from "../services/auth";
+import {
+  MdDelete,
+  MdDeleteForever,
+  MdLogout,
+  MdOutlineDeleteForever,
+} from "react-icons/md";
 
 const Profile = () => {
-  const { user, logout, setUser } = useAuth();
+  const { user, logout, setUser, resetAuth } = useAuth();
+  const navigate = useNavigate();
+  const deleteModalRef = useRef(null);
+  const [deleting, setDeleting] = useState(false);
+
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -33,12 +44,12 @@ const Profile = () => {
     }
   };
 
-  const handleImageUpload = async(e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    const newProfileImage = new FormData()
-    newProfileImage.append('profileImage', file)
-    
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const newProfileImage = new FormData();
+    newProfileImage.append("profileImage", file);
+
     try {
       const res = await AuthService.updateProfileImage(newProfileImage);
       console.log(res);
@@ -50,7 +61,7 @@ const Profile = () => {
         toast.error("Profile image updation failed!!");
       }
     }
-    console.log('Uploading image file...')
+    console.log("Uploading image file...");
   };
 
   const handlePasswordSubmit = async (e) => {
@@ -87,11 +98,37 @@ const Profile = () => {
     }
   };
 
+  const openDeleteModal = () => {
+    deleteModalRef.current?.showModal();
+  };
+
+  const closeDeleteModal = () => {
+    deleteModalRef.current?.close();
+  };
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await AuthService.deleteAccount();
+      toast.success("Account deleted successfully");
+      resetAuth();
+      navigate("/");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          "Failed to delete account. Please try again.",
+      );
+    } finally {
+      setDeleting(false);
+      closeDeleteModal();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       <div className="mb-6">
         <h2
-          className={`text-center text-2xl font-bold ${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
+          className={`text-center text-2xl font-bold ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
         >
           Account Settings
         </h2>
@@ -107,7 +144,7 @@ const Profile = () => {
             <img
               src={user?.profileImage || "/avatar.jpg"}
               alt="Profile"
-              className={`w-full h-full rounded-full object-cover border-4 border-base-300 ${user.role === "organizer" ? "group-hover:border-primary" : "group-hover:border-[color-mix(in_srgb,var(--color-secondary)_80%,#fff)]"} transition duration-200`}
+              className={`w-full h-full rounded-full object-cover border-4 border-base-300 ${user?.role === "organizer" ? "group-hover:border-primary" : "group-hover:border-[color-mix(in_srgb,var(--color-secondary)_80%,#fff)]"} transition duration-200`}
             />
             <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-medium rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition duration-200">
               Change Photo
@@ -119,7 +156,9 @@ const Profile = () => {
               />
             </label>
           </div>
-          <h2 className={`text-xl font-bold ${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}>
+          <h2
+            className={`text-xl font-bold ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
+          >
             {profileData.firstName || "User"}{" "}
             {profileData.lastName || "Profile"}
           </h2>
@@ -130,14 +169,59 @@ const Profile = () => {
             onClick={logout}
             className="w-full btn btn-outline btn-error btn-sm rounded-xl"
           >
+            <MdLogout className="text-lg" />
             Log Out
           </button>
+
+          <button
+            type="button"
+            onClick={openDeleteModal}
+            className="w-full btn btn-outline btn-error btn-sm rounded-xl mt-2"
+          >
+            <MdOutlineDeleteForever className="text-lg" />
+            Delete Account
+          </button>
+
+          {/* Delete Confirmation Modal */}
+          <dialog ref={deleteModalRef} className="modal">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg text-error">Delete Account</h3>
+              <p className="py-4 text-sm text-base-content/70">
+                Are you sure you want to delete your account permanently? This
+                action cannot be undone, and all your data will be lost.
+              </p>
+              <div className="modal-action">
+                <button
+                  type="button"
+                  className="btn btn-sm rounded-xl"
+                  onClick={closeDeleteModal}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-error btn-sm rounded-xl"
+                  onClick={deleteAccount}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+            {/* backdrop click closes modal */}
+            <form method="dialog" className="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
         </div>
 
         <div className="md:col-span-2 space-y-6">
           {/* Section 1: Personal Information */}
           <div className="bg-secondary/10 border border-base-300 rounded-2xl p-6">
-            <h3 className={`text-lg font-semiboldmb-4 ${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}>
+            <h3
+              className={`text-lg font-semiboldmb-4 ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
+            >
               Personal Details
             </h3>
             <form onSubmit={handlePersonalDetailSubmit} className="space-y-4">
@@ -207,7 +291,7 @@ const Profile = () => {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className={`btn rounded-xl px-6 text-sm ${user.role === "organizer" ? "btn-primary" : "btn-secondary"}`}
+                  className={`btn rounded-xl px-6 text-sm ${user?.role === "organizer" ? "btn-primary" : "btn-secondary"}`}
                 >
                   Save Changes
                 </button>
@@ -217,7 +301,9 @@ const Profile = () => {
 
           {/* Section 2: Password Security Management */}
           <div className="bg-secondary/10 border border-base-300 rounded-2xl p-6">
-            <h3 className={`text-lg font-semibold mb-4 ${user.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}>
+            <h3
+              className={`text-lg font-semibold mb-4 ${user?.role === "organizer" ? "text-primary" : "text-[color-mix(in_srgb,var(--color-secondary)_60%,#fff)]"}`}
+            >
               Security & Password
             </h3>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -275,7 +361,7 @@ const Profile = () => {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className={`btn btn-outline rounded-xl px-6 text-sm ${user.role === "organizer" ? "btn-primary" : "btn-secondary"}`}
+                  className={`btn btn-outline rounded-xl px-6 text-sm ${user?.role === "organizer" ? "btn-primary" : "btn-secondary"}`}
                 >
                   Update Password
                 </button>
