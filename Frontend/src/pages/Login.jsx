@@ -8,7 +8,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const initialFormState = {
-    email: "",
+    identifier: "",
     password: "",
   };
   const [formData, setFormData] = useState(initialFormState);
@@ -23,7 +23,11 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(formData);
+      await login({
+        username: formData.identifier,
+        email: formData.identifier,
+        password: formData.password,
+      });
       toast.success("Logged in successfully!");
       setFormData(initialFormState);
       navigate("/");
@@ -32,7 +36,7 @@ const Login = () => {
         toast.error("All fields are required");
       }
       if (err.response?.status === 401) {
-        setFormData({...formData,password:""});
+        setFormData({ ...formData, password: "" });
         toast.error("Invalid user credentials");
       }
       if (err.response?.status === 404) {
@@ -66,14 +70,14 @@ const Login = () => {
           {/* Fields */}
           <div className="flex flex-col gap-1.5 mb-4">
             <label className="font-mono uppercase text-xs font-medium text-base-content/60">
-              Email
+              Email or username
             </label>
             <input
-              name="email"
-              value={formData.email}
+              name="identifier"
+              value={formData.identifier}
               onChange={handleInputChange}
-              type="email"
-              placeholder="john.doe@gmail.com"
+              type="text"
+              placeholder="john.doe@gmail.com or johndoe"
               className="input input-bordered w-full bg-base-300/50 text-sm focus:border-primary focus:outline-none"
               required
             />

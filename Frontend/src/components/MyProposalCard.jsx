@@ -233,12 +233,12 @@ const MyProposalCard = ({
                   className="text-base-content/40 shrink-0"
                 />
                 <div className="flex flex-col gap-0.5 px-3 py-2 rounded-xl border border-secondary/20 bg-secondary/5 flex-1 sm:flex-none">
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-secondary/50">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-secondary/80">
                     Counter
                   </span>
                   <span className="text-xs font-bold text-secondary">
                     ${proposal.counterOffer.toLocaleString()}
-                    <span className="text-xs font-bold text-base-content">
+                    <span className="text-xs font-bold text-base-content ml-1">
                       {proposal.counterStatus}
                     </span>
                   </span>

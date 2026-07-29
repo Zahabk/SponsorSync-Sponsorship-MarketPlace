@@ -183,8 +183,8 @@ const deleteEvent = asyncHandler(async (req, res) => {
   await event.deleteOne();
 
   return res
-    .status(200)
-    .json(new ApiResponse(200, "Event deleted Successfully", {}));
+    .status(204)
+    .json(new ApiResponse(204, "Event deleted Successfully", {}));
 });
 
 //get particular organizer's event
@@ -206,7 +206,7 @@ const updateBanner = asyncHandler(async (req, res) => {
   const oldBannerUrl = event?.banner;
 
   if (!event.organizer.equals(req.user?._id)) {
-    throw new ApiError(403, "Not authorized to update this event");
+    throw new ApiError(403, "Not authorized to update event banner");
   }
 
   const bannerLocalPath = req.file?.path;

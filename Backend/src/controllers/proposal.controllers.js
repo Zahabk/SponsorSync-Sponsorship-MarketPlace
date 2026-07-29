@@ -25,7 +25,12 @@ const submitProposal = asyncHandler(async (req, res) => {
     sponsor: sponsorId,
   });
 
-  if (existing) {
+  const latest = await Proposal.findOne({
+    event: eventId,
+    sponsor: sponsorId,
+  }).sort({ createdAt: -1 });
+
+  if (latest && latest.status !== "rejected") {
     throw new ApiError(
       409,
       "You have already submitted a proposal for this event",
@@ -145,7 +150,7 @@ const getOrganizerProposals = asyncHandler(async (req, res) => {
   const allProposals = await Proposal.find({
     event: { $in: eventIds },
   })
-    .populate("sponsor", "firstName lastName email")
+    .populate("sponsor", "firstName lastName email company")
     .populate("event", "title eventDate eventType tiers")
     .sort({ createdAt: -1 });
 

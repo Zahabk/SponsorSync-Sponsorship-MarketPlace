@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiSend } from "react-icons/fi";
 import ProposalService from "../../services/proposal";
 import { toast } from "react-toastify"
+import { useNavigate } from 'react-router-dom'
 
 const SIDEBAR_NAMES = {
   Gold: "Gold Package",
@@ -15,6 +16,7 @@ const ProposalSidebar = ({ event }) => {
   const [proposedBudget, setProposedBudget] = useState("");
   const [pitch, setPitch] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate()
 
   const handleTierChange = (tier) => {
     setSelectedTier({ name: tier.name, price: tier.price });
@@ -43,6 +45,7 @@ const ProposalSidebar = ({ event }) => {
       setSelectedTier({ name: "", price: 0 });
       setProposedBudget("");
       setPitch("");
+      navigate("/my-proposals")
     } catch (err) {
       const status = err?.response?.status;
       const message = err?.response?.data?.message;
@@ -51,6 +54,8 @@ const ProposalSidebar = ({ event }) => {
         toast.error(
           message || "You have already submitted a proposal for this event.",
         );
+        navigate("/my-proposals")
+
       } else {
         toast.error("Something went wrong. Please try again.");
       }

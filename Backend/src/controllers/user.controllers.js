@@ -105,13 +105,15 @@ const registerUser = asyncHandler(async (req, res) => {
 
 //login user
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const {username, email, password } = req.body;
 
-  if (!password || !email) {
+  if (!password || (!username && !email)) {
     throw new ApiError(400, "All fields are required");
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ 
+    $or: [{ username }, { email }]
+   });
 
   if (!user) {
     throw new ApiError(404, "User does not exist");
@@ -141,9 +143,9 @@ const loginUser = asyncHandler(async (req, res) => {
 //logout user
 const logoutUser = asyncHandler(async (req, res) => {
   return res
-    .status(200)
+    .status(204)
     .clearCookie("accessToken", options)
-    .json(new ApiResponse(200, "User logged out successfully", {}));
+    .json(new ApiResponse(204, "User logged out successfully", {}));
 });
 
 //get current user
@@ -167,8 +169,8 @@ const changePassword = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   return res
-    .status(200)
-    .json(new ApiResponse(200, "Password changed successfully", {}));
+    .status(204)
+    .json(new ApiResponse(204, "Password changed successfully", {}));
 });
 
 //update user account details
@@ -278,9 +280,9 @@ const deleteUserAccount = asyncHandler(async (req, res) => {
   }
 
   return res
-    .status(200)
+    .status(204)
     .clearCookie("accessToken", options)
-    .json(new ApiResponse(200, "User deleted Successfully", {}));
+    .json(new ApiResponse(204, "User deleted Successfully", {}));
 });
 
 //get all users

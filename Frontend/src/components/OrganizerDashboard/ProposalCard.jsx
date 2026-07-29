@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { MdArrowForward } from "react-icons/md";
 import ProposalService from "../../services/proposal";
 import { toast } from "react-toastify";
+import { useOrganizerDashboard } from "../../context/OrganizerDashboardContext";
 
 const STATUS_STYLE = {
   pending: "bg-warning/15 text-warning border-warning/30",
@@ -16,37 +17,54 @@ const TIER_STYLE = {
 };
 
 const ProposalCard = ({ proposal }) => {
+  const { updateProposal } = useOrganizerDashboard();
+
   const [showCounter, setShowCounter] = useState(false);
   const [isEditingCounter, setIsEditingCounter] = useState(false);
   const [counterDetails, setCounterDetails] = useState({
     counterOffer: "",
     counterNote: "",
   });
+  const [isDeciding, setIsDeciding] = useState(false);
 
   const isNegotiating = proposal.status === "negotiating";
   const isSettled = ["approved", "rejected"].includes(proposal.status);
   const canEditCounter = isNegotiating && proposal.counterStatus === "pending";
-  const tierPrice = proposal.event.tiers.find((t) => t.name === proposal.tier).price;
+  const tierPrice = proposal.event.tiers.find((t) => t.name === proposal.tier)
+    ?.price;
 
-  const hasAcceptedCounter = proposal.counterOffer > 0 && proposal.counterStatus === "accepted";
-  const confirmedPrice = hasAcceptedCounter ? proposal.counterOffer : proposal.proposedBudget;
+  const hasAcceptedCounter =
+    proposal.counterOffer > 0 && proposal.counterStatus === "accepted";
+  const confirmedPrice = hasAcceptedCounter
+    ? proposal.counterOffer
+    : proposal.proposedBudget;
 
-  const handleApprove =async () => {
+  const handleApprove = async () => {
+    if (isDeciding) return;
+    setIsDeciding(true);
     try {
-        await ProposalService.decisionOnProposal(proposal._id,"approve")
-        toast.success("Propsal approved sucessfully")
+      await ProposalService.decisionOnProposal(proposal._id, "approve");
+      updateProposal(proposal._id, { status: "approved" });
+      toast.success("Proposal approved successfully");
     } catch (error) {
-        toast.error("Failed to approve proposal")
+      toast.error("Failed to approve proposal");
+    } finally {
+      setIsDeciding(false);
     }
-};
+  };
 
-const handleReject =async () => {
+  const handleReject = async () => {
+    if (isDeciding) return;
+    setIsDeciding(true);
     try {
-        await ProposalService.decisionOnProposal(proposal._id,"reject")
-        toast.success("Propsal rejected sucessfully")
-      } catch (error) {
-        toast.error("Failed to reject proposal")
-      }
+      await ProposalService.decisionOnProposal(proposal._id, "reject");
+      updateProposal(proposal._id, { status: "rejected" });
+      toast.success("Proposal rejected successfully");
+    } catch (error) {
+      toast.error("Failed to reject proposal");
+    } finally {
+      setIsDeciding(false);
+    }
   };
 
   const openNewCounter = () => {
@@ -72,16 +90,26 @@ const handleReject =async () => {
   const handleSaveCounter = async () => {
     try {
       if (isEditingCounter) {
-        await ProposalService.organizerUpdateCounter(
+        await ProposalService.updateCounter(
           proposal._id,
           counterDetails,
         );
+        updateProposal(proposal._id, {
+          counterOffer: Number(counterDetails.counterOffer),
+          counterNote: counterDetails.counterNote,
+        });
         toast.success("Counter offer updated successfully");
       } else {
         await ProposalService.organizerSendCounter(
           proposal._id,
           counterDetails,
         );
+        updateProposal(proposal._id, {
+          status: "negotiating",
+          counterOffer: Number(counterDetails.counterOffer),
+          counterNote: counterDetails.counterNote,
+          counterStatus: "pending",
+        });
         toast.success("Counter offer sent successfully");
       }
       closeCounterForm();
@@ -106,7 +134,6 @@ const handleReject =async () => {
               : "border-base-300/30"
       }`}
     >
-    
       <div className="p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-sm font-bold text-base-content leading-snug">
@@ -130,7 +157,9 @@ const handleReject =async () => {
                 <p className="text-sm sm:text-base font-bold text-secondary">
                   ${proposal.counterOffer.toLocaleString("en-US")}
                 </p>
-                <p className="text-[10px] text-base-content/40">counter offer</p>
+                <p className="text-[10px] text-base-content/40">
+                  counter offer
+                </p>
               </>
             ) : (
               <>
@@ -149,12 +178,29 @@ const handleReject =async () => {
           >
             {proposal.status}
           </span>
-          <p className="text-xs text-base-content/50">
-            {proposal.sponsor.firstName} {proposal.sponsor.lastName}
-            <span className={`font-semibold ml-3 ${TIER_STYLE[proposal.tier]}`}>
-              ★ {proposal.tier} - ${tierPrice}
-            </span>
-          </p>
+          <span
+            className={`text-xs font-semibold ${TIER_STYLE[proposal.tier]}`}
+          >
+            ★ {proposal.tier} · ${tierPrice}
+          </span>
+        </div>
+
+        {/* Sponsor info block */}
+        <div className="mt-2.5 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-base-300/60 flex items-center justify-center text-[11px] font-semibold text-base-content/70 shrink-0">
+            {proposal.sponsor.firstName?.[0]}
+            {proposal.sponsor.lastName?.[0]}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-base-content/80 truncate">
+              {proposal.sponsor.firstName} {proposal.sponsor.lastName}
+            </p>
+            {proposal.sponsor.company && (
+              <p className="text-[11px] text-base-content/45 truncate">
+                {proposal.sponsor.company}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -227,13 +273,15 @@ const handleReject =async () => {
         <div className="flex gap-2 px-3 sm:px-4 py-3 border-t border-base-300/30">
           <button
             onClick={handleApprove}
-            className="flex-1 py-2 rounded-lg text-xs font-medium bg-success/10 text-success border border-success/25 hover:bg-success/20 transition-colors"
+            disabled={isDeciding}
+            className="flex-1 py-2 rounded-lg text-xs font-medium bg-success/10 text-success border border-success/25 hover:bg-success/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Approve
           </button>
           <button
             onClick={handleReject}
-            className="flex-1 py-2 rounded-lg text-xs font-medium bg-error/10 text-error border border-error/25 hover:bg-error/20 transition-colors"
+            disabled={isDeciding}
+            className="flex-1 py-2 rounded-lg text-xs font-medium bg-error/10 text-error border border-error/25 hover:bg-error/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Reject
           </button>
@@ -241,7 +289,8 @@ const handleReject =async () => {
             canEditCounter && (
               <button
                 onClick={openEditCounter}
-                className="flex-1 py-2 rounded-lg text-xs font-medium border border-base-300 bg-base-300/50 text-base-content/50 hover:text-base-content/80 transition-colors"
+                disabled={isDeciding}
+                className="flex-1 py-2 rounded-lg text-xs font-medium border border-base-300 bg-base-300/50 text-base-content/50 hover:text-base-content/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Edit counter
               </button>
@@ -249,7 +298,8 @@ const handleReject =async () => {
           ) : (
             <button
               onClick={openNewCounter}
-              className="flex-1 py-2 rounded-lg text-xs font-medium border border-base-300 bg-base-300/50 text-base-content/50 hover:text-base-content/80 transition-colors"
+              disabled={isDeciding}
+              className="flex-1 py-2 rounded-lg text-xs font-medium border border-base-300 bg-base-300/50 text-base-content/50 hover:text-base-content/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Counter
             </button>

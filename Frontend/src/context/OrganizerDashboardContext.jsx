@@ -25,6 +25,12 @@ export const OrganizerDashboardProvider = ({ children }) => {
     }
   }, []);
 
+  const updateProposal = useCallback((proposalId, updates) => {
+    setProposals((prev) =>
+      prev.map((p) => (p._id === proposalId ? { ...p, ...updates } : p)),
+    );
+  }, []);
+
   useEffect(() => {
     fetchDashboardData();
 
@@ -51,6 +57,7 @@ export const OrganizerDashboardProvider = ({ children }) => {
         setMyEvents,
         proposals,
         setProposals,
+        updateProposal,
         refreshEvents: fetchDashboardData,
         loading,
       }}

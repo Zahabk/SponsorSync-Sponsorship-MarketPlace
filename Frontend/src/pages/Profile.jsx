@@ -66,6 +66,15 @@ const Profile = () => {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    if (passwordData.newPassword.length < 6 || passwordData.newPassword > 11) {
+      toast.error("Passwords must be 6 to 11 characters long");
+      setPasswordData({
+        ...passwordData,
+        confirmPassword: "",
+        newPassword: "",
+      });
+      return;
+    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordData({
         ...passwordData,
@@ -75,6 +84,7 @@ const Profile = () => {
       toast.error("Passwords do not match!");
       return;
     }
+    
     try {
       await AuthService.changeCurrentPassword({
         oldPassword: passwordData.currentPassword,
