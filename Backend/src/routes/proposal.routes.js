@@ -8,6 +8,7 @@ import {
   orgSendsCounter,
   orgUpdateCounter,
   sponsorRespondToCounter,
+  submitPayment,
   submitProposal,
   updateProposal,
 } from "../controllers/proposal.controllers.js";
@@ -30,6 +31,9 @@ router
 router
   .route("/respond/:proposalId/:action")
   .patch(verifyJWT, authorizeRole("sponsor"), sponsorRespondToCounter);
+router
+  .route("/:proposalId/payment")
+  .patch(verifyJWT, authorizeRole("sponsor"), submitPayment);
 
 //organizer only
 router

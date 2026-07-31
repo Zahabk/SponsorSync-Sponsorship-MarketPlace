@@ -19,6 +19,10 @@ const ProposalService = {
     const res = await Api.patch(`/proposals/respond/${proposalId}/${action}`);
     return res.data;
   },
+  sendPayment: async (proposalId) => {
+    const res = await Api.patch(`/proposals/${proposalId}/payment`);
+    return res.data;
+  },
 
   //For organizer
   getProposalsForOrganizerEvents: async () => {

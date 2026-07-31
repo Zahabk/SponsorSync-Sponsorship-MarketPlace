@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { MdOutlineCalendarToday } from "react-icons/md";
-import { FiMessageSquare, FiArrowRight, FiEdit2, FiX } from "react-icons/fi";
+import { FiMessageSquare, FiArrowRight, FiEdit2, FiX, FiCheckCircle, FiCreditCard } from "react-icons/fi";
 import StatusBadge from "./StatusBadge";
+import ProposalService from "../services/proposal";
+import { toast } from "react-toastify";
 
 const tierConfig = {
   Gold: "text-amber-400",
@@ -35,9 +37,12 @@ const MyProposalCard = ({
     message: proposal.message || "",
   });
   const [saving, setSaving] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   const availableTiers = proposal.event?.tiers || [];
   const canEdit = proposal.status === "pending";
+  const isApproved = proposal.status === "approved";
+  const isPaid = proposal.paymentStatus === "paid";
 
   const startEdit = () => {
     setForm({
@@ -62,6 +67,19 @@ const MyProposalCard = ({
       setIsEditing(false);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (isPaid) return;
+    setPaying(true);
+    try {
+      await ProposalService.sendPayment(proposal._id);
+      setPaying(false);
+      toast.success("Payment Done successfully");
+    } catch (error) {
+      toast.error("Payment failed");
+      setPaying(false)
     }
   };
 
@@ -304,6 +322,44 @@ const MyProposalCard = ({
               </div>
             </div>
           )}
+
+        {/* Payment  */}
+        {isApproved && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-base-300/30">
+            {isPaid ? (
+              <div className="flex items-center gap-2 text-xs text-success">
+                <FiCheckCircle size={13} />
+                <span>
+                  Paid
+                  {proposal.paidAt &&
+                    ` · ${new Date(proposal.paidAt).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )}`}
+                </span>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-base-content/40 leading-relaxed">
+                  Your proposal was approved. Complete payment to confirm
+                  sponsorship.
+                </p>
+                <button
+                  onClick={handlePayment}
+                  disabled={paying}
+                  className="btn btn-primary btn-sm h-8 min-h-0 text-xs px-4 shrink-0"
+                >
+                  <FiCreditCard size={12} className="mr-1.5" />
+                  {paying ? "Processing..." : "Pay Now"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -134,6 +134,25 @@ const sponsorRespondToCounter = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Counter respond sent successfully", proposal));
 });
 
+const submitPayment = asyncHandler(async (req, res) => {
+  const { proposalId } = req.params;
+  const proposal = await Proposal.findById(proposalId);
+
+  if (!proposal) {
+    throw new ApiError(404, "Proposal not found");
+  }
+  if (proposal.status !== "approved") {
+    throw new ApiError(400, "Proposal must be approved before payment");
+  }
+
+  proposal.paymentStatus = "paid";
+  proposal.paidAt = Date.now();
+  await proposal.save()
+
+  return res.status(200).
+  json(new ApiResponse(200,"Payment done successfully",proposal))
+});
+
 //organizer only
 const getOrganizerProposals = asyncHandler(async (req, res) => {
   const organizerEvents = await Event.find({ organizer: req.user?._id }).select(
@@ -308,4 +327,5 @@ export {
   orgDecisionOnProposal,
   sponsorRespondToCounter,
   getOrganizerProposals,
+  submitPayment
 };

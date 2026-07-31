@@ -43,6 +43,14 @@ const proposalSchema = new Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    paymentStatus:{
+      type:String,
+      enum:["unpaid","paid"],
+      default:"unpaid"
+    },
+    paidAt:{
+      type:Date
+    }
     
   },
   { timestamps: true },
