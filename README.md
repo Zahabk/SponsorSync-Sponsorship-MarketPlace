@@ -165,7 +165,3 @@ This project demonstrates my ability to design and build a complete full-stack a
 ## ⭐ Support
 
 If you found this project useful, consider giving it a **Star** ⭐ on GitHub — it helps a lot!
-
----
-
-<p align="center">© 2025 SponsorSync · Built with the MERN Stack · Emails by Brevo · Media by Cloudinary</p>
